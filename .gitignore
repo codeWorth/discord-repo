@@ -1,6 +1,7 @@
 # Secrets
-env.txt
+.env
 *.pem
+*.ppk
 
 # Logs
 logs
