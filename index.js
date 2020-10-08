@@ -13,4 +13,4 @@ app.use(express.static("public"));
 
 app.get("/api/test", (req, res) => res.send("test is working!"));
 
-app.listen(process.env.PORT, () => console.log("Listening on port `process.env.PORT`"));
+app.listen(process.env.PORT, () => console.log(`Listening on port ${process.env.PORT}`));
