@@ -9,6 +9,11 @@ connection.createConnection({
 	password: process.env.DB_PASSWORD
 });
 
+con.connect(err => {
+	if (err) throw err;
+	console.log(`Connected to mysql as ${process.env.DB_USER}`);
+});
+
 app.use(express.static("public"));
 
 app.get("/api/test", (req, res) => res.send("test is working!"));
