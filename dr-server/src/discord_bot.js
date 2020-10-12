@@ -25,14 +25,11 @@ client.on("guildDelete", guild => {
 	db.leaveGuild(guild).catch(err => console.log(err));
 });
 client.on("guildUpdate", (oldGuild, newGuild) => {
-	if (!newGuild.available) {
-		return;
-	}
 	if (oldGuild.id != newGuild.id) {
 		console.log(`Id of ${oldGuild.name}/${newGuild.name} changed from ${oldGuild.id} to ${newGuild.id}!`);
 		return;
 	}
-	if (oldGuild.name != newGuild.name || oldGuild.iconUrl() != newGuild.iconUrl() || oldGuild.ownerID != newGuild.ownerID) {
+	if (oldGuild.name != newGuild.name || oldGuild.iconURL() != newGuild.iconURL() || oldGuild.ownerID != newGuild.ownerID) {
 		console.log(`Updating info for guild: ${oldGuild.name}/${newGuild.name}`);
 		db.updateGuild(newGuild).catch(err => console.log(err));
 	}
