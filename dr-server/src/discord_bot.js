@@ -10,8 +10,21 @@ client.on("ready", () => {
 
 client.on("guildCreate", guild => {
 	console.log(`Joined a new guild: ${guild.name}`);
-	guild.fetch().then(g => console.log([g.id, g.name, g.memberCount, g.iconURL()]))
 	db.insertGuild(guild).catch(err => console.log(err));
+});
+client.on("guildDelete", guild => {
+	console.log(`Left guild: ${guild.name}`);
+	db.leaveGuild(guild).catch(err => console.log(err));
+});
+client.on("guildUpdate", (oldGuild, newGuild) => {
+	if (oldGuild.id != newGuild.id) {
+		console.log(`Id of ${oldGuild.name}/${newGuild.name} changed from ${oldGuild.id} to ${newGuild.id}!`);
+		return;
+	}
+	if (oldGuild.name != newGuild.name || oldGuild.iconUrl() != newGuild.iconUrl()) {
+		console.log(`Updating info for guild: ${oldGuild.name}/${newGuild.name}`);
+		db.updateGuild(newGuild).catch(err => console.log(err));
+	}
 });
 client.login(process.env.DISCORD_BOT_TOKEN);
 

@@ -14,7 +14,7 @@ const methods = {
 	checkIdToken: idToken => 
 		new Promise((resolve, reject) =>
 			connection.query(
-				"SELECT * FROM users WHERE id == ?", [idToken],
+				"SELECT * FROM users WHERE id = ?", [idToken],
 				(err, rows) => {
 					if (err) {
 						reject(err);
@@ -41,6 +41,34 @@ const methods = {
 					)
 				)
 				.catch(err => reject(err))
+		),
+
+	updateGuild: guild =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"UPDATE guilds SET name=?, iconURL=?", [guild.name, guild.iconURL()],
+				(err, rows) => {
+					if (err) {
+						reject(err);
+					} else {
+						resolve();
+					}
+				}
+			)
+		),
+
+	leaveGuild: guild =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"DELETE FROM guilds WHERE id = ?", [guild.id],
+				(err, rows) => {
+					if (err) {
+						reject(err);
+					} else {
+						resolve();
+					}
+				}
+			)
 		),
 
 	addUser: idToken =>
