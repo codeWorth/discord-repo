@@ -11,21 +11,17 @@ admin.initializeApp({
 	databaseURL: "https://discord-repos-292002.firebaseio.com"
 });
 
-router.get("/", function(req, res, next) {
-	res.json( {"world": "hello" } );
-});
-
-router.get("/api/user", asyncHandler(
+router.get("/user", asyncHandler(
 	async function (req, res) {
 		let idToken = req.query.id;
 		await admin.auth().verifyIdToken(idToken);
 		await db.addUser(idToken);
 		res.sendStatus(200);
 	}, 
-	error => res.status(401).json( {"error": error} )
+	(req, res, error) => res.status(401).json( {"error": error} )
 ));
 
-router.post("/api/user/join", asyncHandler(
+router.post("/user/join", asyncHandler(
 	async function (req, res) {
 		let guildId = req.query.guildId;
 		let idToken = req.query.id;
@@ -37,10 +33,10 @@ router.post("/api/user/join", asyncHandler(
 			res.status(401).json( {"error": "Unrecognized user."} );
 		}
 	},
-	error => res.status(401).json( {"error": error} )
+	(req, res, error) => res.status(401).json( {"error": error} )
 ));
 
-router.get("/api/guilds", asyncHandler(
+router.get("/guilds", asyncHandler(
 	async function (req, res) {
 		let idToken = req.query.id;
 		let passed = await db.checkIdToken(idToken);
@@ -51,10 +47,10 @@ router.get("/api/guilds", asyncHandler(
 			res.status(401).json( {"error": "Unrecognized user."} );
 		}
 	},
-	error => res.status(401).json( {"error": error} )
+	(req, res, error) => res.status(401).json( {"error": error} )
 ));
 
-router.get("/api/adminpage", function (req, res) {
+router.get("/adminpage", function (req, res) {
 	let code = req.query.code;
 });
 
