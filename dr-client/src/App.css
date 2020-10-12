@@ -3,29 +3,43 @@ html, body {
 	height: 100vh;
 }
 
-.guildList {
-	list-style: none;
-	padding: 20px;
+.guildTable {
+	padding: 10px;
 	width: 100vw;
 }
 
-.listItem {
-	margin: 0px;
-	background-color: rgb(240, 240, 240);
+.guild {
 	border-bottom: 1px solid rgb(40, 40, 40);
+	background-color: rgb(230, 230, 230);
 }
 
-.listItem img {
+.guildTable #icon_col {
+	width: 10%;
+}
+
+.guildTable #title_col {
+	width: 50%;
+}
+
+.guildTable #members_col {
+	width: 40%;
+}
+
+.guild td {
+	padding: 5px;
+}
+
+.guild img {
 	margin: 5px;
 	border-radius: 10px;
 }
 
-.listItem .title {
+.guild .title {
 	font-size: 2em;
 	font-weight: bold;
 	margin-right: 25px;
 }
 
-.listItem .members {
+.guild .members {
 	font-size: 1em;
 }

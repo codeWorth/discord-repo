@@ -52,15 +52,22 @@ function App() {
 		);
 	} else {
 		return (
-			<ul class="guildList">
-				{guilds.map(guild => 
-					<li key={guild.id} className="listItem">
-						<img src={guild.iconURL} height="100"/>
-						<span className="title">{guild.name}</span>
-						<span className="members">{guild.members} Members</span>
-					</li>
-				)}
-			</ul>
+			<table className="guildTable">
+				<colgroup>
+					<col id="icon_col"></col>
+					<col id="title_col"></col>
+					<col id="members_col"></col>
+				</colgroup>
+				<tbody>
+					{guilds.map(guild => 
+						<tr key={guild.id} className="guild">
+							<td><img src={guild.iconURL} alt={guild.name} height="64"/></td>
+							<td className="title">{guild.name}</td>
+							<td className="members">{guild.members} Members</td>
+						</tr>
+					)}
+				</tbody>
+			</table>
 		);
 	}
 }
