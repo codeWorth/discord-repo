@@ -1,6 +1,8 @@
+const crypto = require('crypto');
+
 function asyncHandler(asyncFn, catchFn) {
 	return function (...args) {
-		return Promise.resolve(asyncFn(...args)).catch(err => catchFn(...args, err));
+		return Promise.resolve(asyncFn(...args)).catch(err => catchFn(err, ...args));
 	}
 }
 

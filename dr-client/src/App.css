@@ -1,0 +1,17 @@
+html, body {
+	width: 100vw;
+	height: 100vh;
+}
+
+.guildList {
+	list-style: none;
+	padding: 20px;
+	width: 100vw;
+}
+
+.listItem {
+	margin: 0px;
+	background-color: rgb(240, 240, 240);
+	border-bottom: 1px solid rgb(40, 40, 40);
+	float: left;
+}

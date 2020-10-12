@@ -114,11 +114,11 @@ const methods = {
 				}
 			)
 		),
-	
+
 	addUser: idToken =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"INSERT INTO users VALUES ?", [idToken], 
+				"INSERT INTO users VALUES (?)", [idToken], 
 				(err, rows) => {
 					if (err) reject(err);
 					else resolve();

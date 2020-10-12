@@ -22,13 +22,15 @@ provider.setCustomParameters({
 function App() {
 
 	const [userID, setUserID] = useState("");
+	const [guilds, setGuilds] = useState([]);
+
 	async function signIn() {
 		firebase.auth().signInWithPopup(provider).then(async function(user) {
 			let userIdToken = await firebase.auth().currentUser.getIdToken(true);
 			let response = await fetch(apiUri + "user?" + new URLSearchParams( {id: userIdToken} ));
-			console.log(response);
 			if (response.ok) {
 				setUserID(userIdToken);
+				getGuilds(userIdToken);
 			} else {
 				let json = await response.json();
 				console.log(json);
@@ -38,13 +40,30 @@ function App() {
 		});
 	}
 
+	async function getGuilds(userIdToken) {
+		let response = await fetch(apiUri + "guilds?" + new URLSearchParams( {id: userIdToken} ));
+		let guilds = await response.json();
+		setGuilds(guilds);
+	}
+
 	if (userID.length === 0) {
 		return (
 			<button id="signin" onClick={signIn}>Sign In</button>
 		);
 	} else {
-		return (<div>List time!</div>);
+		return (
+			<ul class="guildList">
+				{guilds.map(guild => 
+					<li key={guild.id} class="listItem">
+						<img src={guild.iconURL} height="100"/>
+						<h2>{guild.name}</h2>
+						<p>{guild.members} Members</p>
+					</li>
+				)}
+			</ul>
+		);
 	}
 }
 
 export default App;
+

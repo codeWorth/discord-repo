@@ -1,8 +1,10 @@
+const e = require("express");
+const { response } = require("express");
 const express = require("express");
 const admin = require("firebase-admin");
 const db = require("../db_interface.js");
 const { getInvite } = require("../discord_bot.js");
-const { asyncHandler } = require("../utility.js");
+const { asyncHandler, sha256 } = require("../utility.js");
 
 const router = express.Router();
 
@@ -13,18 +15,29 @@ admin.initializeApp({
 
 router.get("/user", asyncHandler(
 	async function (req, res) {
-		let idToken = req.query.id;
-		await admin.auth().verifyIdToken(idToken);
-		await db.addUser(idToken);
-		res.sendStatus(200);
+		let userToken = await admin.auth().verifyIdToken(req.query.id);
+		let idToken = userToken.uid;
+		let passed = await db.checkIdToken(idToken);
+		if (passed) {
+			res.sendStatus(200);
+		} else {
+			let domain = userToken.email.split("@")[1];
+			if (domain == "ucla.edu" || domain == "g.ucla.edu") {
+				await db.addUser(idToken);
+				res.sendStatus(200);
+			} else {
+				res.status(401).json( {"error": "Unallowed domain."} );
+			}
+		} 
+		
 	}, 
-	(req, res, error) => res.status(401).json( {"error": error} )
+	(error, req, res) => res.status(401).json( {"error": error} )
 ));
 
 router.post("/user/join", asyncHandler(
 	async function (req, res) {
 		let guildId = req.query.guildId;
-		let idToken = req.query.id;
+		let idToken = (await admin.auth().verifyIdToken(req.query.id)).uid;
 		let passed = await db.checkIdToken(idToken);
 		if (passed) {
 			let invLink = await getInvite(guildId);
@@ -33,21 +46,21 @@ router.post("/user/join", asyncHandler(
 			res.status(401).json( {"error": "Unrecognized user."} );
 		}
 	},
-	(req, res, error) => res.status(401).json( {"error": error} )
+	(error, req, res) => res.status(401).json( {"error": error} )
 ));
 
 router.get("/guilds", asyncHandler(
 	async function (req, res) {
-		let idToken = req.query.id;
+		let idToken = (await admin.auth().verifyIdToken(req.query.id)).uid;
 		let passed = await db.checkIdToken(idToken);
 		if (passed) {
 			let guilds = await db.getGuilds();
-			res.json( {"guilds": guilds} );
+			res.json(guilds);
 		} else {
 			res.status(401).json( {"error": "Unrecognized user."} );
 		}
 	},
-	(req, res, error) => res.status(401).json( {"error": error} )
+	(error, req, res) => res.status(401).json( {"error": error} )
 ));
 
 router.get("/adminpage", function (req, res) {
