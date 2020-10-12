@@ -10,7 +10,7 @@ connection.connect(err => {
 	console.log(`Connected to mysql as ${process.env.DB_USER}`);
 });
 
-export default {
+const methods = {
 	checkIdToken: idToken => 
 		new Promise((resolve, reject) =>
 			connection.query(
@@ -67,3 +67,5 @@ export default {
 			)
 		)
 };
+
+module.exports = methods;

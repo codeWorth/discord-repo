@@ -14,7 +14,7 @@ client.on("guildCreate", guild => {
 });
 client.login(process.env.DISCORD_BOT_TOKEN);
 
-export function getInvite(guildId) {
+function getInvite(guildId) {
 	let guild = client.guilds.get(guildId);
 	let channel = guild.channels
 		.filter(c => c.type === "text")
@@ -29,3 +29,5 @@ export function getInvite(guildId) {
 		return new Promise((resolve, reject) => reject("Bot has no channels with permission in this guild."));
 	}
 }
+
+module.exports = { getInvite };
