@@ -39,7 +39,6 @@ function App() {
 			console.log(error);
 		});
 	}
-
 	async function getGuilds(userIdToken) {
 		let response = await fetch(apiUri + "guilds?" + new URLSearchParams( {id: userIdToken} ));
 		let guilds = await response.json();
@@ -52,22 +51,31 @@ function App() {
 		);
 	} else {
 		return (
-			<table className="guildTable">
-				<colgroup>
-					<col id="icon_col"></col>
-					<col id="title_col"></col>
-					<col id="members_col"></col>
-				</colgroup>
-				<tbody>
-					{guilds.map(guild => 
-						<tr key={guild.id} className="guild">
-							<td><img src={guild.iconURL} alt={guild.name} height="64"/></td>
-							<td className="title">{guild.name}</td>
-							<td className="members">{guild.members} Members</td>
-						</tr>
-					)}
-				</tbody>
-			</table>
+			<div class="guildsContainer">
+				{guilds.map(guild => 
+					<div className="guild">
+						<table className="topInfo" cellpadding="0" cellspacing="0">
+							<colgroup>
+								<col id="icon_col"></col>
+								<col id="title_col"></col>
+							</colgroup>
+							<tbody>
+								<tr key={guild.id} className="guildInfo">
+									<td><img src={guild.iconURL} alt={guild.name} width="75"/></td>
+									<td>
+										<div className="title">imma test stuff out ok hey he</div>
+										<div className="members">{guild.members} Members</div>
+									</td>									
+								</tr>
+							</tbody>
+						</table>
+						<div className="tags">
+							tags will go here
+						</div>
+						<a href="#" className="joinButton">Join</a>
+					</div>
+				)}
+			</div>
 		);
 	}
 }

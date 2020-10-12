@@ -3,43 +3,73 @@ html, body {
 	height: 100vh;
 }
 
-.guildTable {
-	padding: 10px;
+.guildsContainer {
 	width: 100vw;
 }
 
-.guild {
-	border-bottom: 1px solid rgb(40, 40, 40);
-	background-color: rgb(230, 230, 230);
-}
+	.guildsContainer .guild {
+		float: left;
+		padding: 10px;
+		width: 540px;
+		margin-right: 40px;
+		background-color: rgb(240, 240, 240);
+		border-radius: 10px;
+		position: relative;
+	}
 
-.guildTable #icon_col {
-	width: 10%;
-}
+		.guildsContainer .guild .topInfo {
+			width: 100%;
+		}
+			.guildsContainer .guild .topInfo #icon_col {
+				width: 95px;
+			}
+			.guildsContainer .guild .topInfo #title_col {
+				width: 420px;
+			}
+			.guildsContainer .guild .topInfo td {
+				padding: 5px;	
+			}
+				.guildsContainer .guild .topInfo .guildInfo img {
+					margin: 5px;
+					border-radius: 10px;
+				}
+				.guildsContainer .guild .topInfo .guildInfo .title {
+					font-size: 1.7em;
+					font-weight: bold;
+				}
+				.guildsContainer .guild .topInfo .guildInfo .members {
+					font-size: 1em;
+				}
 
-.guildTable #title_col {
-	width: 50%;
-}
+		.guildsContainer .guild .tags {
+			width: 100%;
+		}
 
-.guildTable #members_col {
-	width: 40%;
-}
+		.guildsContainer .guild .joinButton {
+			position: absolute;
+			bottom: 0px;
+			right: 0px;
 
-.guild td {
-	padding: 5px;
-}
-
-.guild img {
-	margin: 5px;
-	border-radius: 10px;
-}
-
-.guild .title {
-	font-size: 2em;
-	font-weight: bold;
-	margin-right: 25px;
-}
-
-.guild .members {
-	font-size: 1em;
-}
+			background:linear-gradient(to bottom, #77b55a 5%, #72b352 100%);
+			background-color:#77b55a;
+			border-radius:4px;
+			border:1px solid #4b8f29;
+			display:inline-block;
+			cursor:pointer;
+			color:#ffffff;
+			font-family:Arial;
+			font-size:1.8em;
+			font-weight:bold;
+			padding:6px 12px;
+			text-decoration:none;
+			margin-left: 25px;
+			margin-right: 25px;
+		}
+		.guildsContainer .guild .joinButton:hover {
+			background:linear-gradient(to bottom, #72b352 5%, #77b55a 100%);
+			background-color:#72b352;
+		}
+		.guildsContainer .guild .joinButton:active {
+			position:relative;
+			top:1px;
+		}
