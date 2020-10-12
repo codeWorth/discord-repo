@@ -13,5 +13,19 @@ html, body {
 	margin: 0px;
 	background-color: rgb(240, 240, 240);
 	border-bottom: 1px solid rgb(40, 40, 40);
-	float: left;
+}
+
+.listItem img {
+	margin: 5px;
+	border-radius: 10px;
+}
+
+.listItem .title {
+	font-size: 2em;
+	font-weight: bold;
+	margin-right: 25px;
+}
+
+.listItem .members {
+	font-size: 1em;
 }

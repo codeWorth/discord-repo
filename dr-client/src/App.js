@@ -54,10 +54,10 @@ function App() {
 		return (
 			<ul class="guildList">
 				{guilds.map(guild => 
-					<li key={guild.id} class="listItem">
+					<li key={guild.id} className="listItem">
 						<img src={guild.iconURL} height="100"/>
-						<h2>{guild.name}</h2>
-						<p>{guild.members} Members</p>
+						<span className="title">{guild.name}</span>
+						<span className="members">{guild.members} Members</span>
 					</li>
 				)}
 			</ul>
