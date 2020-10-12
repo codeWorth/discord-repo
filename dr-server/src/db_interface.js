@@ -11,32 +11,15 @@ connection.connect(err => {
 });
 
 const methods = {
-	checkIdToken: idToken => 
-		new Promise((resolve, reject) =>
-			connection.query(
-				"SELECT * FROM users WHERE id = ?", [idToken],
-				(err, rows) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(rows.length > 0);
-					}
-				}
-			)
-		),
-	
 	insertGuild: unfetchedGuild => 
 		new Promise((resolve, reject) =>
 			unfetchedGuild.fetch()
 				.then(guild => 
 					connection.query(
-						"INSERT INTO guilds VALUES (?, ?, ?, ?)", [guild.id, guild.name, guild.memberCount, guild.iconURL()],
+						"INSERT INTO guilds VALUES (?, ?, ?, ?, ?)", [guild.id, guild.name, guild.memberCount, guild.iconURL(), guild.ownerID],
 						(err, rows) => {
-							if (err) {
-								reject(err);
-							} else {
-								resolve();
-							}
+							if (err) reject(err);
+							else resolve();
 						}
 					)
 				)
@@ -46,13 +29,10 @@ const methods = {
 	updateGuild: guild =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"UPDATE guilds SET name=?, iconURL=?", [guild.name, guild.iconURL()],
+				"UPDATE guilds SET name=?, iconURL=?, ownerID=?", [guild.name, guild.iconURL(), guild.ownerID],
 				(err, rows) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve();
-					}
+					if (err) reject(err);
+					else resolve();
 				}
 			)
 		),
@@ -62,39 +42,86 @@ const methods = {
 			connection.query(
 				"DELETE FROM guilds WHERE id = ?", [guild.id],
 				(err, rows) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve();
-					}
+					if (err) reject(err);
+					else resolve();
 				}
 			)
 		),
 
-	addUser: idToken =>
-		new Promise((resolve, reject) =>
-			connection.query(
-				"INSERT INTO users VALUES ?", [idToken], 
-				(err, rows) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(true);
-					}
-				}
-			)
-		),
 
 	getGuilds: () =>
 		new Promise((resolve, reject) =>
 			connection.query(
 				"SELECT * FROM guilds",
 				(err, rows) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(rows);
-					}
+					if (err) reject(err);
+					else resolve(rows);
+				}
+			)
+		),
+
+	getUserGuilds: userID =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"SELECT id, name FROM guilds WHERE ownerID=? ORDER BY id", [userID],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve(rows);
+				}
+			)
+		),
+
+	getGuildTags: guildID =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"SELECT tag FROM tags WHERE guildID=?", [guildID],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve(rows);
+				}
+			)
+		),
+
+	addGuildTag: (guildID, tag) =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"INSERT INTO tags (guildID, tag) VALUES (?, ?)", [guildID, tag],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve();
+				}
+			)
+		),
+
+	removeGuildTag: (guildID, tag) =>
+		new Promise((resolve, reject) => 
+			connection.query(
+				"DELETE FROM tags WHERE guildID=? AND tag=?", [guildID, tag],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve();
+				}
+			)
+		),
+
+	checkIdToken: idToken => 
+		new Promise((resolve, reject) =>
+			connection.query(
+				"SELECT * FROM users WHERE id = ?", [idToken],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve(rows.length > 0);
+				}
+			)
+		),
+	
+	addUser: idToken =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"INSERT INTO users VALUES ?", [idToken], 
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve();
 				}
 			)
 		)
