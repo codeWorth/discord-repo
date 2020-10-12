@@ -14,7 +14,7 @@ const methods = {
 	checkIdToken: idToken => 
 		new Promise((resolve, reject) =>
 			connection.query(
-				"SELECT * FROM users WHERE id == '?'", [idToken],
+				"SELECT * FROM users WHERE id == ?", [idToken],
 				(err, rows) => {
 					if (err) {
 						reject(err);
@@ -30,7 +30,7 @@ const methods = {
 			unfetchedGuild.fetch()
 				.then(guild => 
 					connection.query(
-						"INSERT INTO guilds VALUES ('?', '?', ?, '?')", [guild.id, guild.name, guild.memberCount, guild.iconURL()],
+						"INSERT INTO guilds VALUES (?, ?, ?, ?)", [guild.id, guild.name, guild.memberCount, guild.iconURL()],
 						(err, rows) => {
 							if (err) {
 								reject(err);
@@ -46,7 +46,7 @@ const methods = {
 	addUser: idToken =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"INSERT INTO users VALUES '?'", [idToken], 
+				"INSERT INTO users VALUES ?", [idToken], 
 				(err, rows) => {
 					if (err) {
 						reject(err);

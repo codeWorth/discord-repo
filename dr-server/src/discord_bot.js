@@ -1,7 +1,7 @@
 // https://discord.com/api/oauth2/authorize?client_id=764381657544392705&permissions=1&scope=bot
 // https://discord.com/api/oauth2/authorize?client_id=764381657544392705&redirect_uri=http%3A%2F%2F54.183.28.145%2Fapi%2Fadminpage&response_type=code&scope=identify
 const discord = require("discord.js");
-const db = require("../db_interface.js");
+const db = require("./db_interface.js");
 const client = new discord.Client();
 
 client.on("ready", () => {
