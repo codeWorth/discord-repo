@@ -25,18 +25,22 @@ const methods = {
 			)
 		),
 	
-	insertGuild: guild => 
+	insertGuild: unfetchedGuild => 
 		new Promise((resolve, reject) =>
-			connection.query(
-				"INSERT INTO guilds VALUES ('?', '?')", [guild.name, guild.id],
-				(err, rows) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve();
-					}
-				}
-			)
+			unfetchedGuild.fetch()
+				.then(guild => 
+					connection.query(
+						"INSERT INTO guilds VALUES ('?', '?', ?, '?')", [guild.id, guild.name, guild.memberCount, guild.iconURL()],
+						(err, rows) => {
+							if (err) {
+								reject(err);
+							} else {
+								resolve();
+							}
+						}
+					)
+				)
+				.catch(err => reject(err))
 		),
 
 	addUser: idToken =>
