@@ -5,12 +5,14 @@ html, body {
 
 .guildsContainer {
 	width: 100vw;
+	padding: 20px;
 }
 
 	.guildsContainer .guild {
 		float: left;
 		padding: 10px;
-		width: 540px;
+		width: 440px;
+		height: 250px;
 		margin-right: 40px;
 		background-color: rgb(240, 240, 240);
 		border-radius: 10px;
@@ -24,7 +26,7 @@ html, body {
 				width: 95px;
 			}
 			.guildsContainer .guild .topInfo #title_col {
-				width: 420px;
+				width: 340px;
 			}
 			.guildsContainer .guild .topInfo td {
 				padding: 5px;	
@@ -34,7 +36,7 @@ html, body {
 					border-radius: 10px;
 				}
 				.guildsContainer .guild .topInfo .guildInfo .title {
-					font-size: 1.7em;
+					font-size: 1.5em;
 					font-weight: bold;
 				}
 				.guildsContainer .guild .topInfo .guildInfo .members {
@@ -62,8 +64,7 @@ html, body {
 			font-weight:bold;
 			padding:6px 12px;
 			text-decoration:none;
-			margin-left: 25px;
-			margin-right: 25px;
+			margin: 15px;
 		}
 		.guildsContainer .guild .joinButton:hover {
 			background:linear-gradient(to bottom, #72b352 5%, #77b55a 100%);

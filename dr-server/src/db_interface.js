@@ -52,10 +52,28 @@ const methods = {
 	getGuilds: () =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"SELECT * FROM guilds",
+				"SELECT * FROM taggedGuilds;",
 				(err, rows) => {
 					if (err) reject(err);
-					else resolve(rows);
+					else {
+						rows.forEach(guild => guild.tags = guild.tags.split("S"));
+						resolve(rows);
+					}
+				}
+			)
+		),
+
+	getGuildsByTags: tags =>
+		new Promise((resolve, reject) => 
+			connection.query(
+				`SELECT taggedGuilds.* FROM taggedGuilds INNER JOIN tags ON taggedGuilds.id = tags.guildID WHERE tags.tag IN (${tags.map(t => "?").join(",")});`,
+				tags,
+				(err, rows) => {
+					if (err) reject(err);
+					else {
+						rows.forEach(guild => guild.tags = guild.tags.split("S"));
+						resolve(rows);
+					}
 				}
 			)
 		),
@@ -63,21 +81,13 @@ const methods = {
 	getUserGuilds: userID =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"SELECT id, name FROM guilds WHERE ownerID=? ORDER BY id", [userID],
+				"SELECT id, name, tags FROM taggedGuilds WHERE ownerID=? ORDER BY id", [userID],
 				(err, rows) => {
 					if (err) reject(err);
-					else resolve(rows);
-				}
-			)
-		),
-
-	getGuildTags: guildID =>
-		new Promise((resolve, reject) =>
-			connection.query(
-				"SELECT tag FROM tags WHERE guildID=?", [guildID],
-				(err, rows) => {
-					if (err) reject(err);
-					else resolve(rows);
+					else {
+						rows.forEach(guild => guild.tags = guild.tags.split("S"));
+						resolve(rows);
+					}
 				}
 			)
 		),

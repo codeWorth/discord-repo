@@ -50,41 +50,26 @@ async function handleMessage(message) {
 		if (userGuilds.length == 0) {
 			await message.author.send("You don't have any servers in the Repo yet.");
 		} else if (userGuilds.length == 1) {
-			let tagsData = await db.getGuildTags(userGuilds[0].id);
-			if (tagsData.length == 0) {
+			if (userGuilds[0].tags.length == 0) {
 				await message.author.send(
-`**${userGuilds[0].name}** has no tags.
-Type \`.add <tag>\` to add a tag, and \`.remove <tag>\` to remove a tag.`
+					`**${userGuilds[0].name}** has no tags.\n` + 
+					`Type \`.add <tag>\` to add a tag, and \`.remove <tag>\` to remove a tag.`
 				);
 			} else {
-				let tags = tagsData.map(data => data.tag).join(", ");
+				let tags = userGuilds[0].tags.join(", ");
 				await message.author.send(
-`**${userGuilds[0].name}** has tags: ${tags}.
-Type \`.add <tag>\` to add a tag, and \`.remove <tag>\` to remove a tag.`
+					`**${userGuilds[0].name}** has tags: ${tags}.\n` +
+					`Type \`.add <tag>\` to add a tag, and \`.remove <tag>\` to remove a tag.`
 				);
 			}
 		} else {
-			let tagsData = await Promise.all(
-				userGuilds.map(async (guild, index) => {
-					let tagsData = await db.getGuildTags(guild.id);
-					return {
-						"name": guild.name,
-						"id": guild.id,
-						"index": index,
-						"tagsData": tagsData
-					};
-				})
-			);
-			let msg = tagsData
-				.map(data =>
-					`\t\`${data.index}\`: **${data.name}** - ${data.tagsData.map(data => data.tag).join(", ")}`
-				)
+			let msg = userGuilds
+				.map((guild, index) => `\t\`${index}\`: **${guild.name}** - ${guild.tags.join(", ")}`)
 				.join("\n");
 			await message.author.send(
-`Your servers have the following tags:
-${msg}
-
-Type \`.add <index> <tag>\` to add a tag, Type \`.remove <index> <tag>\` to remove a tag.`
+				`Your servers have the following tags:\n` + 
+				`${msg}\n\n`+
+				`Type \`.add <index> <tag>\` to add a tag, Type \`.remove <index> <tag>\` to remove a tag.`
 			);
 		}
 
@@ -120,12 +105,9 @@ Type \`.add <index> <tag>\` to add a tag, Type \`.remove <index> <tag>\` to remo
 		}
 
 		tagName = tagName.toLowerCase();
-		let tagsData = await db.getGuildTags(userGuilds[index].id);
-		tagsData = tagsData.map(data => data.tag);
-
 		if (cmd == ".add") {
 
-			if (tagsData.includes(tagName)) {
+			if (userGuilds[index].tags.includes(tagName)) {
 				await message.author.send(`**${userGuilds[index].name}** already has tag '${tagName}'.`);
 			} else {
 				await db.addGuildTag(userGuilds[index].id, tagName);
@@ -134,7 +116,7 @@ Type \`.add <index> <tag>\` to add a tag, Type \`.remove <index> <tag>\` to remo
 
 		} else {
 
-			if (tagsData.includes(tagName)) {
+			if (userGuilds[index].tags.includes(tagName)) {
 				await db.removeGuildTag(userGuilds[index].id, tagName);
 				await message.author.send(`Removed tag '${tagName}' from **${userGuilds[index].name}**.`);
 			} else {

@@ -53,17 +53,17 @@ function App() {
 		return (
 			<div class="guildsContainer">
 				{guilds.map(guild => 
-					<div className="guild">
+					<div className="guild" key={guild.id}>
 						<table className="topInfo" cellpadding="0" cellspacing="0">
 							<colgroup>
 								<col id="icon_col"></col>
 								<col id="title_col"></col>
 							</colgroup>
 							<tbody>
-								<tr key={guild.id} className="guildInfo">
-									<td><img src={guild.iconURL} alt={guild.name} width="75"/></td>
+								<tr className="guildInfo">
+									<td><img src={guild.iconURL} alt="Guild Icon" width="75"/></td>
 									<td>
-										<div className="title">imma test stuff out ok hey he</div>
+										<div className="title">{guild.name}</div>
 										<div className="members">{guild.members} Members</div>
 									</td>									
 								</tr>
