@@ -3,7 +3,7 @@ import "./App.css";
 import * as firebase from "firebase/app";
 import "firebase/auth";
 
-const apiUri = "http://54.183.28.145/api/"
+const apiUri = "http://54.67.103.216/api/"
 const firebaseConfig = {
 	apiKey: "AIzaSyAq4jExyQvsBjrfXnBA1nWkz6xYiR0tdnk",
 	authDomain: "discord-repos-292002.firebaseapp.com",
@@ -17,6 +17,15 @@ firebase.initializeApp(firebaseConfig);
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({
 	"login_hint": "user@ucla.edu"
+});
+
+firebase.auth().onAuthStateChanged(async user => {
+	if (user) {
+		let token = await firebase.auth().currentUser.getIdToken(true);
+		localStorage.setItem("userIDToken", token);
+	} else {
+		localStorage.removeItem("userIDToken");
+	}
 });
 
 class JoinButton extends Component {
@@ -35,8 +44,11 @@ class JoinButton extends Component {
 
 function App() {
 
-	const [userID, setUserID] = useState("");
+	const [userID, setUserID] = useState(localStorage.getItem("userIDToken") || "");
 	const [guilds, setGuilds] = useState([]);
+	if (userID.length > 0) {
+		getGuilds(userID);
+	}
 
 	async function signIn() {
 		firebase.auth().signInWithPopup(provider).then(async function(user) {
@@ -57,6 +69,7 @@ function App() {
 		let response = await fetch(apiUri + "guilds?" + new URLSearchParams( {id: userIdToken} ));
 		let guilds = await response.json();
 		setGuilds(guilds);
+		setInterval(() => getGuilds(userIdToken), 60000);
 	}
 
 	if (userID.length === 0) {
@@ -65,32 +78,38 @@ function App() {
 		);
 	} else {
 		return (
-			<div className="guildsContainer">
-				{guilds.map(guild => 
-					<div className="guild" key={guild.id}>
-						<table className="topInfo" cellPadding="0" cellSpacing="0">
-							<colgroup>
-								<col id="icon_col"></col>
-								<col id="title_col"></col>
-							</colgroup>
-							<tbody>
-								<tr className="guildInfo">
-									<td><img src={guild.iconURL} alt="Guild Icon" width="75"/></td>
-									<td>
-										<div className="title">{guild.name}</div>
-										<div className="members">{guild.members} Members</div>
-									</td>									
-								</tr>
-							</tbody>
-						</table>
-						<div className="tags">
-							{guild.tags.map(tag =>
-								<button className="tag" key={tag}>{tag}</button>
-							)}
+			<div className="container">
+				<div className="header">
+					<span id="searchText">Search: <div id="tagContainer"><input id="tagInput" type="text"/></div></span>
+					<button id="signout">Sign Out</button>
+				</div>
+				<div className="guildsContainer">
+					{guilds.map(guild => 
+						<div className="guild" key={guild.id}>
+							<table className="topInfo" cellPadding="0" cellSpacing="0">
+								<colgroup>
+									<col id="icon_col"></col>
+									<col id="title_col"></col>
+								</colgroup>
+								<tbody>
+									<tr className="guildInfo">
+										<td><img src={guild.iconURL} alt="Guild Icon" width="75"/></td>
+										<td>
+											<div className="title">{guild.name}</div>
+											<div className="members">{guild.members} Members</div>
+										</td>									
+									</tr>
+								</tbody>
+							</table>
+							<div className="tags">
+								{guild.tags.map(tag =>
+									<button className="tag" key={tag}>{tag}</button>
+								)}
+							</div>
+							<JoinButton userID={userID} guildID={guild.id} />
 						</div>
-						<JoinButton userID={userID} guildID={guild.id} />
-					</div>
-				)}
+					)}
+				</div>
 			</div>
 		);
 	}

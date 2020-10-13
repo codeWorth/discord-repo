@@ -1,10 +1,50 @@
-html, body {
-	width: 100vw;
-	height: 100vh;
+body {
+	max-width: 100vw;
 }
 
+.header {
+	max-width: 100%;
+	height: 200px;
+	background-color: rgb(240, 240, 240);
+	border-bottom: 1px solid rgb(200, 200, 200);
+	padding: 10px;
+}
+	.header #searchText {
+		font-size: 1.5em;
+	}
+	.header #tagContainer {
+		position: relative;
+	}
+		.header #tagContainer #tagInput {
+			width: 200px;
+			padding: 4px 8px;
+			font-size: 1.2em;
+		}
+	.header #signout {
+		float: right;
+		background-color: rgb(129, 175, 236);
+		border:1px solid rgb(109, 155, 216);
+		color:rgb(240, 240, 240);
+		text-decoration:none;
+		margin: 15px;
+		border-radius: 4px;
+		font-size: 1.5em;
+		margin: 0px 5px 0px 0px;
+		padding: 4px 8px;
+		cursor: pointer;
+		outline: none;
+		box-shadow: none;
+	}
+	.header #signout:hover {
+		background-color: rgb(119, 165, 226);
+	}
+	.header #signout:active {
+		position: relative;
+		top: 1px;
+	}
+
 .guildsContainer {
-	width: 100vw;
+	max-width: 100%;
 	padding: 20px;
 }
 
@@ -23,13 +63,13 @@ html, body {
 			width: 100%;
 		}
 			.guildsContainer .guild .topInfo #icon_col {
-				width: 95px;
+				width: 90px;
 			}
 			.guildsContainer .guild .topInfo #title_col {
 				width: 340px;
 			}
 			.guildsContainer .guild .topInfo td {
-				padding: 5px;	
+				padding-right: 5px;	
 			}
 				.guildsContainer .guild .topInfo .guildInfo img {
 					margin: 5px;

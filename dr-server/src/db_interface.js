@@ -10,6 +10,13 @@ connection.connect(err => {
 	console.log(`Connected to mysql as ${process.env.DB_USER}`);
 });
 
+function tagsToArray(rows) {
+	rows.forEach(guild => 
+		guild.tags = guild.tags ? guild.tags.split("S") : []
+	);
+	return rows;
+}
+
 const methods = {
 	insertGuild: unfetchedGuild => 
 		new Promise((resolve, reject) =>
@@ -56,7 +63,7 @@ const methods = {
 				(err, rows) => {
 					if (err) reject(err);
 					else {
-						rows.forEach(guild => guild.tags = guild.tags.split("S"));
+						rows = tagsToArray(rows);
 						resolve(rows);
 					}
 				}
@@ -71,7 +78,7 @@ const methods = {
 				(err, rows) => {
 					if (err) reject(err);
 					else {
-						rows.forEach(guild => guild.tags = guild.tags.split("S"));
+						rows = tagsToArray(rows);
 						resolve(rows);
 					}
 				}
@@ -85,7 +92,7 @@ const methods = {
 				(err, rows) => {
 					if (err) reject(err);
 					else {
-						rows.forEach(guild => guild.tags = guild.tags.split("S"));
+						rows = tagsToArray(rows);
 						resolve(rows);
 					}
 				}

@@ -18,5 +18,5 @@ if __name__ == "__main__":
 			"-i",
 			"C:/Users/agcum/Documents/Code/discord-repo/andrewc04_httpserver.pem", 
 			"./" + f,
-			"ubuntu@ec2-54-183-28-145.us-west-1.compute.amazonaws.com:/home/ubuntu/discord-repo/" + f
+			"ubuntu@54.67.103.216:/home/ubuntu/discord-repo/" + f
 		])
