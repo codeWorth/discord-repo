@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Component, useState } from "react";
 import "./App.css";
 import * as firebase from "firebase/app";
 import "firebase/auth";
@@ -18,6 +18,20 @@ const provider = new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({
 	"login_hint": "user@ucla.edu"
 });
+
+class JoinButton extends Component {
+	handleClick = async () => {
+		let resp = await fetch(apiUri + "join?" + new URLSearchParams( {id: this.props.userID, guildID: this.props.guildID} ));
+		let json = await resp.json();
+		window.open(json.link);
+	};
+
+	render() {
+		return (
+			<button onClick={this.handleClick} className="joinButton">Join</button>
+		);
+	}
+}
 
 function App() {
 
@@ -54,7 +68,7 @@ function App() {
 			<div className="guildsContainer">
 				{guilds.map(guild => 
 					<div className="guild" key={guild.id}>
-						<table className="topInfo" cellpadding="0" cellspacing="0">
+						<table className="topInfo" cellPadding="0" cellSpacing="0">
 							<colgroup>
 								<col id="icon_col"></col>
 								<col id="title_col"></col>
@@ -71,10 +85,10 @@ function App() {
 						</table>
 						<div className="tags">
 							{guild.tags.map(tag =>
-								<div className="tag" key={tag}>{tag}</div>
+								<button className="tag" key={tag}>{tag}</button>
 							)}
 						</div>
-						<a href="#" className="joinButton">Join</a>
+						<JoinButton userID={userID} guildID={guild.id} />
 					</div>
 				)}
 			</div>

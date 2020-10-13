@@ -34,9 +34,9 @@ router.get("/user", asyncHandler(
 	(error, req, res) => res.status(401).json( {"error": error} )
 ));
 
-router.post("/user/join", asyncHandler(
+router.get("/join", asyncHandler(
 	async function (req, res) {
-		let guildId = req.query.guildId;
+		let guildId = req.query.guildID;
 		let idToken = (await admin.auth().verifyIdToken(req.query.id)).uid;
 		let passed = await db.checkIdToken(idToken);
 		if (passed) {

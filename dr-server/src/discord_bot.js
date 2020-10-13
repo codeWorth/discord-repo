@@ -104,6 +104,11 @@ async function handleMessage(message) {
 			return;
 		}
 
+		if (tagName.length > 32) {
+			await message.author.send("Tag may not be more than 32 characters.");
+			return;
+		}
+
 		tagName = tagName.toLowerCase();
 		if (cmd == ".add") {
 
@@ -130,17 +135,15 @@ async function handleMessage(message) {
 	}
 }
 
-function getInvite(guildId) {
-	let guild = client.guilds.get(guildId);
-	let channel = guild.channels
+async function getInvite(guildID) {
+	let guild = await client.guilds.fetch(guildID);
+	let channel = guild.channels.cache
 		.filter(c => c.type === "text")
 		.filter(c => c.permissionsFor(guild.me).has("CREATE_INSTANT_INVITE"))
 		.reduce((acc, cur) => (cur.position < acc.position) ? cur : acc);
 	if (channel) {
-		return channel.createInvite({
-			maxAge: 45,
-			maxUses: 1
-		});
+		let invite = await channel.createInvite( {maxAge: 45, maxUses: 1} );
+		return invite.url;
 	} else {
 		return new Promise((resolve, reject) => reject("Bot has no channels with permission in this guild."));
 	}

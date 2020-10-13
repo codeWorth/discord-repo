@@ -49,10 +49,24 @@ html, body {
 			.guildsContainer .guild .tags .tag {
 				float: left;
 				background-color: rgb(210, 210, 210);
-				border-radius: 5px;
-				font-size: 1.2em;
-				margin-right: 5px;
+				border:1px solid rgb(180, 180, 180);
+				color:rgb(35, 35, 35);
+				text-decoration:none;
+				margin: 15px;
+				border-radius: 4px;
+				font-size: 1.05em;
+				margin: 0px 5px 0px 0px;
 				padding: 3px 7px;
+				cursor: pointer;
+				outline: none;
+				box-shadow: none;
+			}
+			.guildsContainer .guild .tags .tag:hover {
+				background-color: rgb(200, 200, 200);
+			}
+			.guildsContainer .guild .tags .tag:active {
+				position: relative;
+				top: 1px;
 			}
 
 		.guildsContainer .guild .joinButton {
@@ -72,6 +86,8 @@ html, body {
 			padding:6px 12px;
 			text-decoration:none;
 			margin: 15px;
+			outline: none;
+			box-shadow: none;
 		}
 		.guildsContainer .guild .joinButton:hover {
 			background:linear-gradient(to bottom, #72b352 5%, #77b55a 100%);
