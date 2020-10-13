@@ -1,4 +1,5 @@
 # Secrets
+db_create.txt
 *.env
 *.pem
 *.ppk

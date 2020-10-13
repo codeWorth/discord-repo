@@ -51,7 +51,7 @@ function App() {
 		);
 	} else {
 		return (
-			<div class="guildsContainer">
+			<div className="guildsContainer">
 				{guilds.map(guild => 
 					<div className="guild" key={guild.id}>
 						<table className="topInfo" cellpadding="0" cellspacing="0">
@@ -70,7 +70,9 @@ function App() {
 							</tbody>
 						</table>
 						<div className="tags">
-							tags will go here
+							{guild.tags.map(tag =>
+								<div className="tag" key={tag}>{tag}</div>
+							)}
 						</div>
 						<a href="#" className="joinButton">Join</a>
 					</div>
