@@ -48,11 +48,11 @@ html, body {
 		}
 			.guildsContainer .guild .tags .tag {
 				float: left;
-				background-color: rgb(150, 150, 150);
+				background-color: rgb(210, 210, 210);
 				border-radius: 5px;
 				font-size: 1.2em;
 				margin-right: 5px;
-				padding: 5px;
+				padding: 3px 7px;
 			}
 
 		.guildsContainer .guild .joinButton {
