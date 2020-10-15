@@ -65,14 +65,20 @@ class TagButton extends Component {
 }
 
 class JoinButton extends Component {
+	constructor(props) {
+		super(props);
+		this.url = null;
+		fetch(apiUri + "join?" + new URLSearchParams( {id: this.props.userID, guildID: this.props.guildID} ))
+			.then(response => response.json())
+			.then(json => this.url = json.link);
+	}
+
 	handleClick = async () => {
 		if (this.props.userID.length === 0) {
 			alert("You must sign in to join a server.");
 		} else {
-			let response = await fetch(apiUri + "join?" + new URLSearchParams( {id: this.props.userID, guildID: this.props.guildID} ));
-			if (response.ok) {
-				let json = await response.json();
-				window.open(json.link);
+			if (this.url) {
+				window.open(this.url);
 			}
 		}
 	};
@@ -85,6 +91,7 @@ class JoinButton extends Component {
 }
 
 let tagsForTimer = [];
+let postGuildURL = null;
 function App() {
 
 	const [userID, setUserID] = useState(localStorage.getItem("userIDToken") || "");
@@ -106,6 +113,16 @@ function App() {
 	useEffect(() => {
 		getSearchOptions();
 	}, [searchText]);
+
+	useEffect(() => {
+		if (userID.length > 0){
+			fetch(apiUri + "user/add?" + new URLSearchParams( {"id": userID} ))
+				.then(response => response.json())
+				.then(json => postGuildURL = json.url);
+		} else {
+			postGuildURL = null;
+		}
+	}, [userID])
 
 	async function doAuth() {
 		if (userID.length === 0) {
@@ -129,11 +146,8 @@ function App() {
 	async function postGuild() {
 		if (userID.length === 0) {
 			alert("You must sign in to add a server.");
-		} else {
-			let response = await fetch(apiUri + "user/add?" + new URLSearchParams( {"id": userID} ));
-			let json = await response.json();
-			let url = json.url;
-			window.open(url);
+		} else if (postGuildURL) {
+			window.open(postGuildURL);
 		}
 	}
 
