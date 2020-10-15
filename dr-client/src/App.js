@@ -126,8 +126,15 @@ function App() {
 		}
 	}
 
-	function postGuild() {
-		window.open("https://discord.com/api/oauth2/authorize?client_id=764381657544392705&permissions=2049&scope=bot");
+	async function postGuild() {
+		if (userID.length === 0) {
+			alert("You must sign in to add a server.");
+		} else {
+			let response = await fetch(apiUri + "user/add?" + new URLSearchParams( {"id": userID} ));
+			let json = await response.json();
+			let url = json.url;
+			window.open(url);
+		}
 	}
 
 	async function getGuilds() {

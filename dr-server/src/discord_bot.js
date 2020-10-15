@@ -16,21 +16,6 @@ client.on("ready", () => {
 	console.log(`Logged in as ${client.user.tag}`);
 });
 
-client.on("guildCreate", asyncHandler(
-	async guild => {
-		console.log(`Joined a new guild: ${guild.name}`);
-		await db.insertGuild(guild);
-		await guild.owner.send(
-`Once you click the link below, your server, **${guild.name}**, will be added to the Repo. 
-If you want it to be removed from the Repo, just remove me from your server.
-To manage your server's tags, type \`.tags\`.
-
-Click this link to confirm that you are a UCLA student:
-${homeURL + "auth.html?" + new URLSearchParams( {"guildID": guild.id} )}`
-		);
-	},
-	err => console.error(err)
-));
 client.on("guildDelete", guild => {
 	console.log(`Left guild: ${guild.name}`);
 	db.leaveGuild(guild).catch(err => console.error(err));
@@ -58,8 +43,7 @@ async function handleMessage(message) {
 	let msg = message.content.trim();
 	let cmd = msg.split(" ")[0];
 
-	console.log("dm message", message, "from", message.author.id);
-
+	console.log(`dm message '${msg}' from ${message.author.username}`);
 	if (cmd == ".tags") {
 
 		let userGuilds = await db.getUserGuilds(message.author.id);
@@ -243,6 +227,17 @@ async function getInvite(guildID) {
 	}
 }
 
+async function addGuild(guildID, ownerID) {
+	let guild = await client.guilds.fetch(guildID);
+	db.insertGuild(guild, ownerID);
+	let user = await client.users.fetch(ownerID) 
+	user.send(
+`Your server, **${guild.name}**, has been added to the Repo. 
+If you want it to be removed from the Repo, just remove me from your server.
+To manage your server's tags, type \`.tags\`.`
+	);
+}
+
 function updateAllMembers() {
 	updateMembers.forEach(guildID =>
 		client.guilds.fetch(guildID)
@@ -252,4 +247,4 @@ function updateAllMembers() {
 	updateMembers.clear();
 }
 
-module.exports = { getInvite };
+module.exports = { getInvite, addGuild };
