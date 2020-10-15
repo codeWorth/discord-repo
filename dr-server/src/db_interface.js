@@ -56,8 +56,8 @@ const methods = {
 						url = parts.join(".");
 					}
 					connection.query(
-						"INSERT INTO guilds VALUES (?, ?, ?, ?, ?)", 
-						[guild.id, guild.name, guild.memberCount, url, guild.ownerID],
+						"INSERT INTO guilds VALUES (?, ?, ?, ?, ?, ?)", 
+						[guild.id, guild.name, guild.memberCount, url, guild.ownerID, false],
 						(err, rows) => {
 							if (err) reject(err);
 							else resolve();
@@ -65,6 +65,17 @@ const methods = {
 					);
 				})
 				.catch(err => reject(err))
+		),
+
+	confirmGuild: guildID =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"UPDATE guilds SET confirmed=TRUE WHERE id=?", [guildID],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve();
+				}
+			)
 		),
 
 	updateGuild: guild =>
@@ -103,7 +114,7 @@ const methods = {
 	getGuild: guildID =>
 		new Promise((resolve, reject) => 
 			connection.query(
-				"SELECT * FROM guilds WHERE id=?", [guildID],
+				"SELECT * FROM guilds WHERE id=? AND confirmed=TRUE", [guildID],
 				(err, rows) => {
 					if (err) reject(err);
 					else resolve(rows);
@@ -114,7 +125,7 @@ const methods = {
 	getGuildsStart: count =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"SELECT * FROM taggedGuilds ORDER BY members DESC, id LIMIT ?", [count],
+				"SELECT * FROM taggedGuilds WHERE confirmed=TRUE ORDER BY members DESC, id LIMIT ?", [count],
 				(err, rows) => {
 					if (err) reject(err);
 					else {
@@ -129,7 +140,7 @@ const methods = {
 	getGuilds: (count, membersLast, idLast) =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"SELECT * FROM taggedGuilds ORDER BY members DESC, id WHERE (members=? AND id>?) OR members<? LIMIT ?", [membersLast, idLast, membersLast, count],
+				"SELECT * FROM taggedGuilds ORDER BY members DESC, id WHERE confirmed=TRUE AND ((members=? AND id>?) OR members<?) LIMIT ?", [membersLast, idLast, membersLast, count],
 				(err, rows) => {
 					if (err) reject(err);
 					else {
@@ -145,7 +156,7 @@ const methods = {
 			connection.query(
 				`SELECT taggedGuilds.* FROM taggedGuilds 
 					INNER JOIN tags ON taggedGuilds.id=tags.guildID 
-					WHERE tags.tag IN (${tags.map(t => "?").join(",")}) 
+					WHERE tags.tag IN (${tags.map(t => "?").join(",")}) AND confirmed=TRUE
 					GROUP BY taggedGuilds.id
 					ORDER BY taggedGuilds.members DESC, taggedGuilds.id LIMIT ?`,
 				[...tags, count],
@@ -168,6 +179,8 @@ const methods = {
 						tags.tag IN (${tags.map(t => "?").join(",")}) 
 						AND
 						((members=? AND id>?) OR members<?)
+						AND
+						confirmed=TRUE
 					GROUP BY taggedGuilds.id
 					ORDER BY taggedGuilds.members DESC, taggedGuilds.id LIMIT ?`,
 				[...tags, membersLast, idLast, membersLast, count],
@@ -184,7 +197,7 @@ const methods = {
 	getUserGuilds: userID =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"SELECT id, name, tags FROM taggedGuilds WHERE ownerID=? ORDER BY id", [userID],
+				"SELECT id, name, tags FROM taggedGuilds WHERE ownerID=? AND confirmed=TRUE ORDER BY id", [userID],
 				(err, rows) => {
 					if (err) reject(err);
 					else {

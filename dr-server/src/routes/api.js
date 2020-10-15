@@ -40,6 +40,31 @@ router.get("/user", asyncHandler(
 	(error, req, res) => res.status(401).json( {"error": JSON.stringify(error)} )
 ));
 
+router.put("/confirm", asyncHandler(
+	async function (req, res) {
+		let userToken = await admin.auth().verifyIdToken(req.query.id);
+		let idToken = userToken.uid;
+		let passed = await db.checkIdToken(idToken);
+		if (passed) {
+			console.log("user confirm", userToken.email);
+		} else {
+			let domain = userToken.email.split("@")[1];
+			if (domain == "ucla.edu" || domain == "g.ucla.edu") {
+				console.log("user add and confirm", userToken.email);
+				await db.addUser(idToken);
+			} else {
+				console.log("non-ucla login to confirm", userToken.email);
+				res.status(401).json( {"error": "Unallowed domain."} );
+				return;
+			}
+		}
+		
+		await db.confirmGuild(req.query.guildID);
+		res.sendStatus(200);
+	}, 
+	(error, req, res) => res.status(401).json( {"error": JSON.stringify(error)} )
+));
+
 router.get("/join", asyncHandler(
 	async function (req, res) {
 		let guildId = req.query.guildID;

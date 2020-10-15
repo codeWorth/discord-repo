@@ -5,6 +5,7 @@ const db = require("./db_interface.js");
 const { asyncHandler } = require("./utility.js");
 const client = new discord.Client();
 const adminDiscordUID = process.env.MY_DISCORD_UID;
+const homeURL = "http://54.67.103.216/";
 
 let correctTo = "";
 
@@ -20,9 +21,12 @@ client.on("guildCreate", asyncHandler(
 		console.log(`Joined a new guild: ${guild.name}`);
 		await db.insertGuild(guild);
 		await guild.owner.send(
-`Your server, **${guild.name}**, has been added to the Repo. 
+`Once you click the link below, your server, **${guild.name}**, will be added to the Repo. 
 If you want it to be removed from the Repo, just remove me from your server.
-To manage your server's tags, type \`.tags\`.`
+To manage your server's tags, type \`.tags\`.
+
+Click this link to confirm that you are a UCLA student:
+${homeURL + "auth.html?" + new URLSearchParams( {"guildID": guild.id} )}`
 		);
 	},
 	err => console.error(err)
