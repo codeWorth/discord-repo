@@ -17,6 +17,27 @@ function tagsToArray(rows) {
 	return rows;
 }
 
+function updateTags(real_tag, correct_tag) {
+	return new Promise((resolve, reject) =>
+		connection.query( // remove tags which will become duplicates
+			"DELETE t2 FROM tags t1 INNER JOIN tags t2 ON t1.guildID=t2.guildID AND t1.tag=? AND t2.tag=?", [correct_tag, real_tag],
+			(err, rows) => {
+				if (err){
+					reject(err);
+				} else {
+					connection.query( // update remaining tags
+						"UPDATE tags SET tags.tag=? WHERE tags.tag=?", [correct_tag, real_tag],
+						(err, rows) => {
+							if (err) reject(err);
+							else resolve();
+						}
+					)
+				}
+			}
+		)
+	);
+}	
+
 const methods = {
 	insertGuild: unfetchedGuild => 
 		new Promise((resolve, reject) =>
@@ -36,7 +57,18 @@ const methods = {
 	updateGuild: guild =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"UPDATE guilds SET name=?, iconURL=?, ownerID=?", [guild.name, guild.iconURL(), guild.ownerID],
+				"UPDATE guilds SET name=?, iconURL=?, ownerID=? WHERE id=?", [guild.name, guild.iconURL(), guild.ownerID, guild.id],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve();
+				}
+			)
+		),
+	
+	updateGuildMembers: (guildID, members) =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"UPDATE guilds SET members=? WHERE id=?", [members, guildID],
 				(err, rows) => {
 					if (err) reject(err);
 					else resolve();
@@ -47,7 +79,7 @@ const methods = {
 	leaveGuild: guild =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"DELETE FROM guilds WHERE id = ?", [guild.id],
+				"DELETE FROM guilds WHERE id=?", [guild.id],
 				(err, rows) => {
 					if (err) reject(err);
 					else resolve();
@@ -55,11 +87,21 @@ const methods = {
 			)
 		),
 
+	getGuild: guildID =>
+		new Promise((resolve, reject) => 
+			connection.query(
+				"SELECT * FROM guilds WHERE id=?", [guildID],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve(rows);
+				}
+			)
+		),
 
-	getGuilds: () =>
+	getGuildsStart: count =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"SELECT * FROM taggedGuilds;",
+				"SELECT * FROM taggedGuilds ORDER BY members DESC, id LIMIT ?", [membersLast, count],
 				(err, rows) => {
 					if (err) reject(err);
 					else {
@@ -70,11 +112,50 @@ const methods = {
 			)
 		),
 
-	getGuildsByTags: tags =>
+
+	getGuilds: (count, membersLast, idLast) =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"SELECT * FROM taggedGuilds ORDER BY members DESC, id WHERE (members=? AND id>?) OR members<? LIMIT ?", [membersLast, idLast, membersLast, count],
+				(err, rows) => {
+					if (err) reject(err);
+					else {
+						rows = tagsToArray(rows);
+						resolve(rows);
+					}
+				}
+			)
+		),
+
+	getGuildsByTagsStart: (tags, count) =>
 		new Promise((resolve, reject) => 
 			connection.query(
-				`SELECT taggedGuilds.* FROM taggedGuilds INNER JOIN tags ON taggedGuilds.id = tags.guildID WHERE tags.tag IN (${tags.map(t => "?").join(",")});`,
-				tags,
+				`SELECT taggedGuilds.* FROM taggedGuilds 
+					INNER JOIN tags ON taggedGuilds.id=tags.guildID 
+					WHERE tags.tag IN (${tags.map(t => "?").join(",")}) 
+					ORDER BY members DESC, id LIMIT ?`,
+				[...tags, count],
+				(err, rows) => {
+					if (err) reject(err);
+					else {
+						rows = tagsToArray(rows);
+						resolve(rows);
+					}
+				}
+			)
+		),
+
+	getGuildsByTags: (tags, count, membersLast, idLast) =>
+		new Promise((resolve, reject) => 
+			connection.query(
+				`SELECT taggedGuilds.* FROM taggedGuilds 
+					INNER JOIN tags ON taggedGuilds.id=tags.guildID 
+					WHERE 
+						tags.tag IN (${tags.map(t => "?").join(",")}) 
+						AND
+						((members=? AND id>?) OR members<?)
+					ORDER BY members DESC, id LIMIT ?`,
+				[...tags, membersLast, idLast, membersLast, count],
 				(err, rows) => {
 					if (err) reject(err);
 					else {
@@ -121,10 +202,30 @@ const methods = {
 			)
 		),
 
+	getTagsStartingWith: (substring, limit, badTags) =>
+		new Promise((resolve, reject) => {
+			let badTagsArr = tagsToArray(badTags);
+			connection.query(
+				`SELECT ac.correct_tag as tag, COUNT(*) as count FROM autoCorrectTags AS ac
+					LEFT JOIN tags AS t ON ac.correct_tag=t.tag
+					WHERE 
+						ac.real_tag LIKE ?
+						AND
+						ac.correct_tag IN (${badTagsArr.map(t => "?").join(",")})
+					ORDER BY count GROUP BY ac.correct_tag
+					LIMIT ?
+				`, [substring + "%", ...badTagsArr, limit],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve(rows);
+				}
+			)
+		}),
+
 	checkIdToken: idToken => 
 		new Promise((resolve, reject) =>
 			connection.query(
-				"SELECT * FROM users WHERE id = ?", [idToken],
+				"SELECT * FROM users WHERE id=?", [idToken],
 				(err, rows) => {
 					if (err) reject(err);
 					else resolve(rows.length > 0);
@@ -139,6 +240,58 @@ const methods = {
 				(err, rows) => {
 					if (err) reject(err);
 					else resolve();
+				}
+			)
+		),
+
+	getCorrectionFrom: real_tag =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"SELECT correct_tag FROM autoCorrectTags WHERE real_tag=?", [real_tag],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve(rows);
+				}
+			)
+		),
+
+	updateCorrection: (real_tag, correct_tag) =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"UPDATE autoCorrectTags SET real_tag=?, correct_tag=? WHERE real_tag=?", [real_tag, correct_tag, real_tag],
+				(err, rows) => {
+					if (err) {
+						reject(err);
+					} else {
+						cachedCorrections = null;
+						updateTags(real_tag, correct_tag).then(resolve).catch(reject);
+					}
+				}
+			)
+		),
+
+	addCorrection: (real_tag, correct_tag) =>
+		new Promise((resolve, reject) =>
+			connection.query(
+				"INSERT INTO autoCorrectTags VALUES (?, ?)", [real_tag, correct_tag],
+				(err, rows) => {
+					if (err) {
+						reject(err);
+					} else {
+						cachedCorrections = null;
+						updateTags(real_tag, correct_tag).then(resolve).catch(reject);
+					}
+				}
+			)
+		),
+
+	getCorrections: () =>
+		new Promise((resolve, reject) => 
+			connection.query(
+				"SELECT * FROM autoCorrectTags", [],
+				(err, rows) => {
+					if (err) reject(err);
+					else resolve(rows);
 				}
 			)
 		)

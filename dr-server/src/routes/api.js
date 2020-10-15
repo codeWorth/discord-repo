@@ -4,9 +4,12 @@ const express = require("express");
 const admin = require("firebase-admin");
 const db = require("../db_interface.js");
 const { getInvite } = require("../discord_bot.js");
-const { asyncHandler, sha256 } = require("../utility.js");
+const { asyncHandler } = require("../utility.js");
 
 const router = express.Router();
+
+const guildsMaxCount = 50;
+const tagsMaxCount = 10;
 
 admin.initializeApp({
 	credential: admin.credential.applicationDefault(),
@@ -51,20 +54,40 @@ router.get("/join", asyncHandler(
 
 router.get("/guilds", asyncHandler(
 	async function (req, res) {
-		let idToken = (await admin.auth().verifyIdToken(req.query.id)).uid;
-		let passed = await db.checkIdToken(idToken);
-		if (passed) {
-			let guilds = await db.getGuilds();
-			res.json(guilds);
+		let guilds;
+
+		if ('id_last' in req.query) {
+			let idLast = req.query.id_last;
+			let membersLast = await db.getGuild(idLast);
+
+			if ('tags' in req.query) {
+				let tags = req.query.tags.split("S");
+				guilds = await db.getGuildsByTags(tags, guildsMaxCount, membersLast, idLast);
+			} else {
+				guilds = await db.getGuilds(guildsMaxCount, membersLast, idLast);
+			}
 		} else {
-			res.status(401).json( {"error": "Unrecognized user."} );
+			if ('tags' in req.query) {
+				let tags = req.query.tags.split("S");
+				guilds = await db.getGuildsByTagsStart(tags, guildsMaxCount);
+			} else {
+				guilds = await db.getGuildsStart(guildsMaxCount);
+			}
 		}
+
+		res.json(guilds);
 	},
-	(error, req, res) => res.status(401).json( {"error": error} )
+	(error, req, res) => res.status(500).json( {"error": error} )
 ));
 
-router.get("/adminpage", function (req, res) {
-	let code = req.query.code;
-});
+router.get("/tags", asyncHandler(
+	async function (req, res) {
+		let tagSearch = req.query.search;
+		let badTags = req.query.bad_tags;
+		let tags = await db.getTagsStartingWith(tagSearch, tagsMaxCount, badTags);
+		res.json(tags);
+	},
+	(error, req, res) => res.status(500).json( {"error": error} )
+));
 
 module.exports = router;

@@ -1,8 +1,15 @@
 // https://discord.com/api/oauth2/authorize?client_id=764381657544392705&permissions=2049&scope=bot
 const discord = require("discord.js");
+const { response } = require("express");
 const db = require("./db_interface.js");
 const { asyncHandler } = require("./utility.js");
 const client = new discord.Client();
+const adminDiscordUID = process.env.MY_DISCORD_UID;
+
+let correctTo = "";
+
+let updateMembers = new Set();
+let updateMembersInterval = setInterval(updateAllMembers, 45000); // every 45 seconds
 
 client.on("ready", () => {
 	console.log(`Logged in as ${client.user.tag}`);
@@ -18,11 +25,11 @@ If you want it to be removed from the Repo, just remove me from your server.
 To manage your server's tags, type \`.tags\`.`
 		);
 	},
-	err => console.log(err)
+	err => console.error(err)
 ));
 client.on("guildDelete", guild => {
 	console.log(`Left guild: ${guild.name}`);
-	db.leaveGuild(guild).catch(err => console.log(err));
+	db.leaveGuild(guild).catch(err => console.error(err));
 });
 client.on("guildUpdate", (oldGuild, newGuild) => {
 	if (oldGuild.id != newGuild.id) {
@@ -31,10 +38,13 @@ client.on("guildUpdate", (oldGuild, newGuild) => {
 	}
 	if (oldGuild.name != newGuild.name || oldGuild.iconURL() != newGuild.iconURL() || oldGuild.ownerID != newGuild.ownerID) {
 		console.log(`Updating info for guild: ${oldGuild.name}/${newGuild.name}`);
-		db.updateGuild(newGuild).catch(err => console.log(err));
+		db.updateGuild(newGuild).catch(err => console.error(err));
 	}
 });
-client.on("message", asyncHandler(handleMessage, err => console.log(err)));
+client.on("message", asyncHandler(handleMessage, err => console.error(err)));
+client.on("guildMemberAdd", member => updateMembers.add(member.guild.id));
+client.on("guildMemberRemove", member => updateMembers.add(member.guild.id));
+
 client.login(process.env.DISCORD_BOT_TOKEN);
 
 async function handleMessage(message) {
@@ -103,13 +113,22 @@ async function handleMessage(message) {
 			await message.author.send("Tag cannot be empty.");
 			return;
 		}
-
 		if (tagName.length > 32) {
 			await message.author.send("Tag may not be more than 32 characters.");
 			return;
 		}
 
 		tagName = tagName.toLowerCase();
+		let correctedTagRows = await db.getCorrectionFrom(tagName);
+		if (correctedTagRows.length == 0) {
+			await db.addCorrection(tagName, tagName);
+		} else {
+			let correctTag = correctedTagRows[0].correct_tag;
+			if (correctTag != tagName) {
+				await message.author.send(`Autocorrected '${tagName}' to '${correctTag}'.`);
+				tagName = correctTag;
+			}
+		}
 		if (cmd == ".add") {
 
 			if (userGuilds[index].tags.includes(tagName)) {
@@ -129,6 +148,75 @@ async function handleMessage(message) {
 			}
 
 		}
+	} else if (message.author.id == adminDiscordUID && cmd == ".correct") {
+
+		let msgParts = msg.split(" ");
+		if (msgParts[1] == "to") {
+			correctTo = msgParts.slice(2).join(" ");
+			correctTo = correctTo.toLowerCase();
+			await message.author.send(`Set \`correctTo\` to '${correctTo}'`);
+		} else if (msgParts[1] == "from") {
+			let correctFrom = msgParts.slice(2).join(" ");
+			correctFrom = correctFrom.toLowerCase();
+
+			if (correctTo.length == 0) {
+				await message.author.send("Cannot correct to empty tag.");
+				return;
+			}
+			if (correctFrom.length == 0) {
+				await message.author.send("Cannot correct from empty tag.");
+				return;
+			}
+			if (correctTo.length > 32) {
+				await message.author.send("Cannot correct to tag greater than 32 characters.");
+				return;
+			}
+			if (correctFrom.length > 32) {
+				await message.author.send("Cannot correct from tag greater than 32 characters.");
+				return;
+			}
+
+			let hasCorrection = (await db.getCorrectionFrom(correctFrom)).length > 0;
+			if (hasCorrection) {
+				await db.updateCorrection(correctFrom, correctTo);
+				await message.author.send(`Updated '${correctFrom}' to correct to '${correctTo}'.`);
+			} else {
+				await db.addCorrection(correctFrom, correctTo);
+				await message.author.send(`Added correction from '${correctFrom}' to '${correctTo}'.`);
+			}
+
+		} else {
+			await message.author.send("Sub command must be \`from\` or \`to\`.");
+		}
+
+	} else if (message.author.id == adminDiscordUID && cmd == ".uncorrect") {
+
+		let msgParts = msg.split(" ");
+		let correctFrom = msgParts.slice(1).join(" ");
+		if (correctFrom.length == 0) {
+			await message.author.send("Tag cannot be empty.");
+			return;
+		}
+		if (correctFrom.length > 32) {
+			await message.author.send("Tag length cannot be greater than 32 characters.");
+			return
+		}
+
+		let hasCorrection = (await db.getCorrectionFrom(correctFrom)).length > 0;
+		if (hasCorrection) {
+			await db.updateCorrection(correctFrom, correctFrom);
+			await message.author.send(`Updated '${correctFrom} to correct to '${correctFrom}'.`);
+		} else {
+			await message.author.send(`There is no correction from '${correctFrom}' to uncorrect.`);
+		}
+
+	} else if (message.author.id == adminDiscordUID && cmd == ".corrections") {
+
+		let corrections = await db.getCorrections();
+		console.log("Tag corrections:");
+		console.log(corrections);
+		await message.author.send("Logged corrections to console.");
+
 	} else {
 		await message.author.send("Invalid command.");
 		return;
@@ -147,6 +235,15 @@ async function getInvite(guildID) {
 	} else {
 		return new Promise((resolve, reject) => reject("Bot has no channels with permission in this guild."));
 	}
+}
+
+function updateAllMembers() {
+	updateMembers.forEach(guildID =>
+		client.guilds.fetch(guildID)
+			.then(guild => db.updateGuildMembers(guildID, guild.memberCount))
+			.cache(err => console.error(err))
+	);
+	updateMembers.clear();
 }
 
 module.exports = { getInvite };
