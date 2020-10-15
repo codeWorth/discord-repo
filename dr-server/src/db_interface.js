@@ -101,7 +101,7 @@ const methods = {
 	getGuildsStart: count =>
 		new Promise((resolve, reject) =>
 			connection.query(
-				"SELECT * FROM taggedGuilds ORDER BY members DESC, id LIMIT ?", [membersLast, count],
+				"SELECT * FROM taggedGuilds ORDER BY members DESC, id LIMIT ?", [count],
 				(err, rows) => {
 					if (err) reject(err);
 					else {

@@ -1,8 +1,7 @@
-import React, { Component, useState } from "react";
+import React, { Component, useEffect, useState } from "react";
 import "./App.css";
 import * as firebase from "firebase/app";
 import "firebase/auth";
-import { getGuilds } from "../../dr-server/src/db_interface";
 
 const apiUri = "http://54.67.103.216/api/"
 const firebaseConfig = {
@@ -59,6 +58,7 @@ class TagButton extends Component {
 	handleClick = () => this.props.clickHandler(this.props.tag);
 
 	render() {
+		console.log(this.props.tag);
 		return (
 			<button className="tag" key={this.props.tag} onClick={this.handleClick}>{this.props.tag}</button>
 		);
@@ -71,8 +71,10 @@ class JoinButton extends Component {
 			alert("You must sign in to join a server.");
 		} else {
 			let response = await fetch(apiUri + "join?" + new URLSearchParams( {id: this.props.userID, guildID: this.props.guildID} ));
-			let json = await response.json();
-			window.open(json.link);
+			if (response.ok) {
+				let json = await response.json();
+				window.open(json.link);
+			}
 		}
 	};
 
@@ -91,8 +93,10 @@ function App() {
 	const [searchOptions, setSearchOptions] = useState([]);
 	const [searchText, setSearchText] = useState("");
 	
-	getGuilds();
-	setInterval(getGuilds, 60000);
+	useEffect(() => {
+		getGuilds();
+		// setInterval(getGuilds, 60000);
+	}, []);
 
 	async function doAuth() {
 		if (userID.length === 0) {
@@ -103,7 +107,7 @@ function App() {
 					setUserID(userIdToken);
 				} else {
 					let json = await response.json();
-					console.log(json);
+					console.error(json);
 				}
 			}).catch(err => console.error(err));
 		} else {
@@ -114,23 +118,25 @@ function App() {
 	}
 	async function getGuilds() {
 		let response = await fetch(apiUri + "guilds");
-		let guilds = await response.json();
-		setGuilds(guilds);
+		if (response.ok) {
+			let guilds = await response.json();
+			setGuilds(guilds);
+		}
 	}
 	function removeSearchTag(removeTag) {
-		setSearchTags(searchTags.filter(tag => tag.tag != removeTag.tag));
+		setSearchTags(searchTags.filter(tag => tag.tag !== removeTag.tag));
 	}
 	function selectSearchOption(selectOption) {
 		setSearchOptions(searchOptions.map(option => { 
-			return {...option, "selected": option.tag == selectOption.tag}; 
+			return {...option, "selected": option.tag === selectOption.tag}; 
 		}));
 	}
 	function searchKeypress(e) {
-		if (e.key == "ArrowDown" || e.key == "ArrowRight") {
+		if (e.key === "ArrowDown" || e.key === "ArrowRight") {
 			nextSearchOption();
-		} else if (e.key == "ArrowUp" || e.key == "ArrowLeft") {
+		} else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
 			prevSearchOption();
-		} else if (e.key == "Enter") {
+		} else if (e.key === "Enter") {
 			addSearchOption(searchText);
 			setSearchText("");
 			setSearchOptions([]);
@@ -143,12 +149,12 @@ function App() {
 		if (curIndex > -1) {
 			curIndex = Math.min(searchOptions.length - 1, curIndex + 1);
 			setSearchOptions(searchOptions.map((option, index) => {
-				return {...option, "selected": index == curIndex};
+				return {...option, "selected": index === curIndex};
 			}));
 			setSearchText(searchOptions[curIndex].tag);
 		} else {
 			setSearchOptions(searchOptions.map((option, index) => {
-				return {...option, "selected": index == 0};
+				return {...option, "selected": index === 0};
 			}));
 			setSearchText(searchOptions[0].tag);
 		}
@@ -158,18 +164,18 @@ function App() {
 		if (curIndex > -1) {
 			curIndex = Math.max(0, curIndex - 1);
 			setSearchOptions(searchOptions.map((option, index) => {
-				return {...option, "selected": index == curIndex};
+				return {...option, "selected": index === curIndex};
 			}));
 			setSearchText(searchOptions[curIndex].tag);
 		} else {
 			setSearchOptions(searchOptions.map((option, index) => {
-				return {...option, "selected": index == searchOptions.length - 1};
+				return {...option, "selected": index === searchOptions.length - 1};
 			}));
 			setSearchText(searchOptions[searchOptions.length - 1].tag);
 		}
 	}
 	function addSearchOption(addTag) {
-		let optionExists = searchTags.find(tag => tag.tag == addTag);
+		let optionExists = searchTags.find(tag => tag.tag === addTag);
 		if (!optionExists) {
 			setSearchTags(searchTags.concat([{"tag": addTag}]));
 		}
@@ -179,8 +185,10 @@ function App() {
 			"search": text, 
 			"bad_tags": searchTags.map(tag => tag.tag).join("S")
 		}));
-		let options = await response.json();
-		setSearchOptions(options);
+		if (response.ok) {
+			let options = await response.json();
+			setSearchOptions(options);
+		}
 	}
 
 	return (

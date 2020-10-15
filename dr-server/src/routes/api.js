@@ -34,7 +34,7 @@ router.get("/user", asyncHandler(
 		} 
 		
 	}, 
-	(error, req, res) => res.status(401).json( {"error": error} )
+	(error, req, res) => res.status(401).json( {"error": JSON.stringify(error)} )
 ));
 
 router.get("/join", asyncHandler(
@@ -49,25 +49,25 @@ router.get("/join", asyncHandler(
 			res.status(401).json( {"error": "Unrecognized user."} );
 		}
 	},
-	(error, req, res) => res.status(401).json( {"error": error} )
+	(error, req, res) => res.status(401).json( {"error": JSON.stringify(error)} )
 ));
 
 router.get("/guilds", asyncHandler(
 	async function (req, res) {
 		let guilds;
 
-		if ('id_last' in req.query) {
+		if ('id_last' in req.query && req.query.id_last !== "") {
 			let idLast = req.query.id_last;
 			let membersLast = await db.getGuild(idLast);
 
-			if ('tags' in req.query) {
+			if ('tags' in req.query && req.query.tags !== "") {
 				let tags = req.query.tags.split("S");
 				guilds = await db.getGuildsByTags(tags, guildsMaxCount, membersLast, idLast);
 			} else {
 				guilds = await db.getGuilds(guildsMaxCount, membersLast, idLast);
 			}
 		} else {
-			if ('tags' in req.query) {
+			if ('tags' in req.query && req.query.tags !== "") {
 				let tags = req.query.tags.split("S");
 				guilds = await db.getGuildsByTagsStart(tags, guildsMaxCount);
 			} else {
@@ -77,7 +77,7 @@ router.get("/guilds", asyncHandler(
 
 		res.json(guilds);
 	},
-	(error, req, res) => res.status(500).json( {"error": error} )
+	(error, req, res) => res.status(500).json( {"error": JSON.stringify(error)} )
 ));
 
 router.get("/tags", asyncHandler(
@@ -87,7 +87,7 @@ router.get("/tags", asyncHandler(
 		let tags = await db.getTagsStartingWith(tagSearch, tagsMaxCount, badTags);
 		res.json(tags);
 	},
-	(error, req, res) => res.status(500).json( {"error": error} )
+	(error, req, res) => res.status(500).json( {"error": JSON.stringify(error)} )
 ));
 
 module.exports = router;

@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const murmur = require('murmurhash3js');
 
 function asyncHandler(asyncFn, catchFn) {
 	return function (...args) {
@@ -7,8 +6,5 @@ function asyncHandler(asyncFn, catchFn) {
 	}
 }
 
-function hash128(str) {
-	return murmur.x64.hash128(str);
-}
 
-module.exports = { asyncHandler, hash128 };
+module.exports = { asyncHandler };
