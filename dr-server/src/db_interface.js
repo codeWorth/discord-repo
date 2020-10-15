@@ -50,6 +50,10 @@ const methods = {
 					let url = guild.iconURL();
 					if (!url) {
 						url = "http://54.67.103.216/no_icon.png"
+					} else {
+						let parts = url.split(".");
+						parts[parts.length - 1] = "png";
+						url = parts.join(".");
 					}
 					connection.query(
 						"INSERT INTO guilds VALUES (?, ?, ?, ?, ?)", 

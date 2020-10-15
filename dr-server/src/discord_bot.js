@@ -54,6 +54,8 @@ async function handleMessage(message) {
 	let msg = message.content.trim();
 	let cmd = msg.split(" ")[0];
 
+	console.log("dm message", message, "from", message.author.id);
+	
 	if (cmd == ".tags") {
 
 		let userGuilds = await db.getUserGuilds(message.author.id);

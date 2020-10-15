@@ -22,13 +22,16 @@ router.get("/user", asyncHandler(
 		let idToken = userToken.uid;
 		let passed = await db.checkIdToken(idToken);
 		if (passed) {
+			console.log("user login", userToken.email);
 			res.sendStatus(200);
 		} else {
 			let domain = userToken.email.split("@")[1];
 			if (domain == "ucla.edu" || domain == "g.ucla.edu") {
+				console.log("user add", userToken.email);
 				await db.addUser(idToken);
 				res.sendStatus(200);
 			} else {
+				console.log("non-ucla login", userToken.email);
 				res.status(401).json( {"error": "Unallowed domain."} );
 			}
 		} 
@@ -43,6 +46,7 @@ router.get("/join", asyncHandler(
 		let idToken = (await admin.auth().verifyIdToken(req.query.id)).uid;
 		let passed = await db.checkIdToken(idToken);
 		if (passed) {
+			console.log("user", idToken, "wants", guildId);
 			let invLink = await getInvite(guildId);
 			res.json( {"link": invLink} );
 		} else {
