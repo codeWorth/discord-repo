@@ -8,6 +8,7 @@ const { asyncHandler } = require("../utility.js");
 
 const router = express.Router();
 
+const allow_all = true;
 const guildsMaxCount = 50;
 const tagsMaxCount = 10;
 const redirect = "http://discordrepo.com:3001/api/add";
@@ -34,7 +35,7 @@ router.get("/user", asyncHandler(
 			res.sendStatus(200);
 		} else {
 			let domain = userToken.email.split("@")[1];
-			if (domain == "ucla.edu" || domain == "g.ucla.edu") {
+			if (allow_all || domain == "ucla.edu" || domain == "g.ucla.edu") {
 				console.log("user add", userToken.email);
 				await db.addUser(idToken);
 				res.sendStatus(200);
@@ -91,7 +92,7 @@ router.get("/add", asyncHandler(
 		addGuild(guildID, uid);
 		res.sendStatus(200);
 	},
-	(error, req, res) => res.sendStatus(401) )
+	(error, req, res) => res.sendStatus(401)
 ));
 
 router.get("/join", asyncHandler(

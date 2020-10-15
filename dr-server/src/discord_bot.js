@@ -236,6 +236,7 @@ async function addGuild(guildID, ownerID) {
 If you want it to be removed from the Repo, just remove me from your server.
 To manage your server's tags, type \`.tags\`.`
 	);
+	console.log(`${guild.name} added by ${user.username}`);
 }
 
 function updateAllMembers() {
