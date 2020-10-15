@@ -55,7 +55,7 @@ async function handleMessage(message) {
 	let cmd = msg.split(" ")[0];
 
 	console.log("dm message", message, "from", message.author.id);
-	
+
 	if (cmd == ".tags") {
 
 		let userGuilds = await db.getUserGuilds(message.author.id);
@@ -243,7 +243,7 @@ function updateAllMembers() {
 	updateMembers.forEach(guildID =>
 		client.guilds.fetch(guildID)
 			.then(guild => db.updateGuildMembers(guildID, guild.memberCount))
-			.cache(err => console.error(err))
+			.catch(err => console.error(err))
 	);
 	updateMembers.clear();
 }
