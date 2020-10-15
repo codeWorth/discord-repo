@@ -3,7 +3,7 @@ import "./App.css";
 import * as firebase from "firebase/app";
 import "firebase/auth";
 
-const apiUri = "http://54.67.103.216/api/"
+const apiUri = "http://discordrepo.com:3001/api/"
 const firebaseConfig = {
 	apiKey: "AIzaSyAq4jExyQvsBjrfXnBA1nWkz6xYiR0tdnk",
 	authDomain: "discord-repos-292002.firebaseapp.com",

@@ -49,7 +49,7 @@ const methods = {
 				.then(guild => {
 					let url = guild.iconURL();
 					if (!url) {
-						url = "http://54.67.103.216/no_icon.png"
+						url = "http://discordrepo.com/no_icon.png"
 					} else {
 						let parts = url.split(".");
 						parts[parts.length - 1] = "png";

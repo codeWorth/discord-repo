@@ -5,7 +5,7 @@ const db = require("./db_interface.js");
 const { asyncHandler } = require("./utility.js");
 const client = new discord.Client();
 const adminDiscordUID = process.env.MY_DISCORD_UID;
-const homeURL = "http://54.67.103.216/";
+const homeURL = "http://discordrepo.com/";
 
 let correctTo = "";
 
