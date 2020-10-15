@@ -126,6 +126,10 @@ function App() {
 		}
 	}
 
+	function postGuild() {
+		window.open("https://discord.com/api/oauth2/authorize?client_id=764381657544392705&permissions=2049&scope=bot");
+	}
+
 	async function getGuilds() {
 		let response = await fetch(apiUri + "guilds?" + new URLSearchParams({
 			tags: tagsForTimer.map(tag => tag.tag).join("S")
@@ -216,8 +220,10 @@ function App() {
 	return (
 		<div className="container">
 			<div className="header">
-				<span id="searchText">Search: </span>
+				<button onClick={doAuth} id="auth">{userID.length === 0 ? "Sign In" : "Sign Out"}</button>
+				<button onClick={postGuild} id="postGuild">Add Server</button>
 				<div id="searchContainer">
+					<span id="searchText">Tags: </span>
 					<input id="tagInput" type="text" value={searchText} onKeyDown={searchKeypress} onChange={updateSearchText} />
 					{searchOptions.length > 0 ? (
 						<div id="searchOptions">
@@ -227,7 +233,6 @@ function App() {
 						</div>
 					) : <br/>}
 				</div>
-				<button onClick={doAuth} id="auth">{userID.length === 0 ? "Sign In" : "Sign Out"}</button>
 				<div id="tags">
 					{searchTags.map(tag =>
 						<SearchTag key={tag.tag} tag={tag} clickHandler={removeSearchTag} />
