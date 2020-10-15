@@ -7,7 +7,7 @@ body {
 	background-color: rgb(240, 240, 240);
 	border-bottom: 1px solid rgb(200, 200, 200);
 	padding: 20px;
-	overflow-y: auto;
+	padding-bottom: 10px;
 	height: auto;
 }
 	.header #searchText {
@@ -25,31 +25,33 @@ body {
 			font-size: 1.2em;
 		}
 		.header #searchContainer #searchOptions {
+			z-index: 10;
 			position: absolute;
 			top: 34px;
 			left: 0px;
-			width: 100%;
+			width: calc(100% - 2px);
 			height: auto;
 			border: 1px solid rgb(35, 35, 35);
+			background-color: white;
+			
 		}
 			.header #searchContainer #searchOptions .searchOption {
-				background-color: rgb(235, 235, 235);
 				color:rgb(35, 35, 35);
-				font-size: 1.2em;
-				width: 100%;
+				font-size: 1.05em;
+				width: calc(100% - 8px);
 				padding: 4px;
 			}
-			.header #searchContainer #searchOptions .searchOption:not(:last-child) {
-				border-bottom: 1px solid rgb(65, 65, 65);
+			.header #searchContainer #searchOptions .searchOption:not(:first-child) {
+				border-top: 1px solid rgb(65, 65, 65);
 			}
 			.header #searchContainer #searchOptions .searchOption:hover {
-				background-color: rgb(195, 195, 195);
+				background-color: rgb(235, 235, 235);
 			}
 			.header #searchContainer #searchOptions .selected {
-				background-color: rgb(195, 195, 195);
+				background-color: rgb(225, 225, 225);
 			}
 				.header #searchContainer #searchOptions .searchOption .memberCount {
-					font-size: 1.0em;
+					font-size: 0.8em;
 					color:rgb(105, 105, 105);
 				}
 		
@@ -75,7 +77,6 @@ body {
 		top: 1px;
 	}
 	.header #tags {
-		border-top: 1px solid black; /* use to align properly */
 		margin-top: 50px;
 		width: 100%;
 		overflow-y: auto;
@@ -95,8 +96,9 @@ body {
 			.header #tags .searchTag .deleteTag {
 				margin-left: 5px;
 				font-size: 1.05em;
+				font-weight: bold;
 				cursor: pointer;
-				color:rgb(65, 65, 65);
+				color:rgb(182, 77, 77);
 			}
 			.header #tags .searchTag .deleteTag:hover {
 				text-decoration: underline;

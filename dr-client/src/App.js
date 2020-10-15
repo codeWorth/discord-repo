@@ -33,9 +33,9 @@ class SearchOption extends Component {
 
 	render() {
 		return (
-			<div className={this.props.option.selected ? "searchOption selected" : "searchOption"} key={this.props.option.tag}>
+			<div className={this.props.option.selected ? "searchOption selected" : "searchOption"} onClick={this.handleClick}>
 				<div>{this.props.option.tag}</div>
-				<div className="memberCount" onClick={this.handleClick}>{this.props.option.count} uses</div>
+				<div className="memberCount">{this.props.option.count} {this.props.option.count === 1 ? "use" : "uses"}</div>
 			</div>
 		);
 	}
@@ -46,9 +46,9 @@ class SearchTag extends Component {
 
 	render() {
 		return (
-			<div className="searchTag" key={this.props.tag.tag}>
+			<div className="searchTag">
 				<span>{this.props.tag.tag}</span>
-				<span clasName="deleteTag">x</span>
+				<span className="deleteTag" onClick={this.handleClick}>x</span>
 			</div>
 		);
 	}
@@ -58,9 +58,8 @@ class TagButton extends Component {
 	handleClick = () => this.props.clickHandler(this.props.tag);
 
 	render() {
-		console.log(this.props.tag);
 		return (
-			<button className="tag" key={this.props.tag} onClick={this.handleClick}>{this.props.tag}</button>
+			<button className="tag" onClick={this.handleClick}>{this.props.tag}</button>
 		);
 	}
 }
@@ -85,6 +84,7 @@ class JoinButton extends Component {
 	}
 }
 
+let tagsForTimer = [];
 function App() {
 
 	const [userID, setUserID] = useState(localStorage.getItem("userIDToken") || "");
@@ -95,8 +95,17 @@ function App() {
 	
 	useEffect(() => {
 		getGuilds();
-		// setInterval(getGuilds, 60000);
+		setInterval(getGuilds, 60000);
 	}, []);
+
+	useEffect(() => {
+		tagsForTimer = searchTags;
+		getGuilds();
+	}, [searchTags]);
+
+	useEffect(() => {
+		getSearchOptions();
+	}, [searchText]);
 
 	async function doAuth() {
 		if (userID.length === 0) {
@@ -116,78 +125,91 @@ function App() {
 				.catch(err => console.error(err));
 		}
 	}
+
 	async function getGuilds() {
-		let response = await fetch(apiUri + "guilds");
+		let response = await fetch(apiUri + "guilds?" + new URLSearchParams({
+			tags: tagsForTimer.map(tag => tag.tag).join("S")
+		}));
 		if (response.ok) {
 			let guilds = await response.json();
 			setGuilds(guilds);
 		}
 	}
-	function removeSearchTag(removeTag) {
-		setSearchTags(searchTags.filter(tag => tag.tag !== removeTag.tag));
-	}
-	function selectSearchOption(selectOption) {
-		setSearchOptions(searchOptions.map(option => { 
-			return {...option, "selected": option.tag === selectOption.tag}; 
-		}));
-	}
-	function searchKeypress(e) {
-		if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-			nextSearchOption();
-		} else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-			prevSearchOption();
-		} else if (e.key === "Enter") {
-			addSearchOption(searchText);
-			setSearchText("");
-			setSearchOptions([]);
-		} else {
-			getSearchOptions(e.target.value);
-		}
-	}
-	function nextSearchOption() {
-		let curIndex = searchOptions.findIndex(option => option.selected);
-		if (curIndex > -1) {
-			curIndex = Math.min(searchOptions.length - 1, curIndex + 1);
-			setSearchOptions(searchOptions.map((option, index) => {
-				return {...option, "selected": index === curIndex};
-			}));
-			setSearchText(searchOptions[curIndex].tag);
-		} else {
-			setSearchOptions(searchOptions.map((option, index) => {
-				return {...option, "selected": index === 0};
-			}));
-			setSearchText(searchOptions[0].tag);
-		}
-	}
-	function prevSearchOption() {
-		let curIndex = searchOptions.findIndex(option => option.selected);
-		if (curIndex > -1) {
-			curIndex = Math.max(0, curIndex - 1);
-			setSearchOptions(searchOptions.map((option, index) => {
-				return {...option, "selected": index === curIndex};
-			}));
-			setSearchText(searchOptions[curIndex].tag);
-		} else {
-			setSearchOptions(searchOptions.map((option, index) => {
-				return {...option, "selected": index === searchOptions.length - 1};
-			}));
-			setSearchText(searchOptions[searchOptions.length - 1].tag);
-		}
-	}
-	function addSearchOption(addTag) {
+
+	function addSearchTag(addTag) {
 		let optionExists = searchTags.find(tag => tag.tag === addTag);
 		if (!optionExists) {
 			setSearchTags(searchTags.concat([{"tag": addTag}]));
 		}
 	}
-	async function getSearchOptions(text) {
-		let response = await fetch(apiUri + "tags?" + new URLSearchParams( {
-			"search": text, 
-			"bad_tags": searchTags.map(tag => tag.tag).join("S")
-		}));
-		if (response.ok) {
-			let options = await response.json();
-			setSearchOptions(options);
+
+	function removeSearchTag(removeTag) {
+		setSearchTags(searchTags.filter(tag => tag.tag !== removeTag.tag));
+	}
+
+	function selectSearchOption(selectOption) {
+		addSearchTag(selectOption.tag);
+		setSearchText("");
+	}
+
+	function searchKeypress(e) {
+		if (e.key === "ArrowDown") {
+			nextSearchOption();
+		} else if (e.key === "ArrowUp") {
+			prevSearchOption();
+		} else if (e.key === "Enter") {
+			let selected = searchOptions.find(option => option.selected);
+			if (selected) {
+				addSearchTag(selected.tag);
+			} else {
+				addSearchTag(searchText);
+			}
+			setSearchText("");
+		}
+	}
+
+	function nextSearchOption() {
+		let curIndex = searchOptions.findIndex(option => option.selected);
+		if (curIndex > -1) {
+			setSearchOptions(searchOptions.map((option, index) => {
+				return {...option, "selected": index === curIndex + 1};
+			}));
+		} else {
+			setSearchOptions(searchOptions.map((option, index) => {
+				return {...option, "selected": index === 0};
+			}));
+		}
+	}
+
+	function prevSearchOption() {
+		let curIndex = searchOptions.findIndex(option => option.selected);
+		if (curIndex > -1) {
+			setSearchOptions(searchOptions.map((option, index) => {
+				return {...option, "selected": index === curIndex - 1};
+			}));
+		} else {
+			setSearchOptions(searchOptions.map((option, index) => {
+				return {...option, "selected": index === searchOptions.length - 1};
+			}));
+		}
+	}
+
+	function updateSearchText(e) {
+		setSearchText(e.target.value);
+	}
+
+	async function getSearchOptions() {
+		if (searchText.length > 0) {
+			let response = await fetch(apiUri + "tags?" + new URLSearchParams( {
+				"search": searchText, 
+				"bad_tags": searchTags.map(tag => tag.tag).join("S")
+			}));
+			if (response.ok) {
+				let options = await response.json();
+				setSearchOptions(options);
+			}
+		} else {
+			setSearchOptions([]);
 		}
 	}
 
@@ -196,11 +218,11 @@ function App() {
 			<div className="header">
 				<span id="searchText">Search: </span>
 				<div id="searchContainer">
-					<input id="tagInput" type="text" value={searchText} onKeyPress={searchKeypress} />
+					<input id="tagInput" type="text" value={searchText} onKeyDown={searchKeypress} onChange={updateSearchText} />
 					{searchOptions.length > 0 ? (
 						<div id="searchOptions">
 							{searchOptions.map(option =>
-								<SearchOption option={option} clickHandler={selectSearchOption} />
+								<SearchOption key={option.tag} option={option} clickHandler={selectSearchOption} />
 							)}
 						</div>
 					) : <br/>}
@@ -208,7 +230,7 @@ function App() {
 				<button onClick={doAuth} id="auth">{userID.length === 0 ? "Sign In" : "Sign Out"}</button>
 				<div id="tags">
 					{searchTags.map(tag =>
-						<SearchTag tag={tag} clickHandler={removeSearchTag} />
+						<SearchTag key={tag.tag} tag={tag} clickHandler={removeSearchTag} />
 					)}
 				</div>
 			</div>
@@ -232,7 +254,7 @@ function App() {
 						</table>
 						<div className="tags">
 							{guild.tags.map(tag =>
-								<TagButton tag={tag.tag} />
+								<TagButton key={tag} tag={tag} clickHandler={addSearchTag} />
 							)}
 						</div>
 						<JoinButton userID={userID} guildID={guild.id} />

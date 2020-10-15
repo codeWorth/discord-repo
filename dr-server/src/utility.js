@@ -6,5 +6,4 @@ function asyncHandler(asyncFn, catchFn) {
 	}
 }
 
-
 module.exports = { asyncHandler };

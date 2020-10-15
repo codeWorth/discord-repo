@@ -10,9 +10,13 @@ connection.connect(err => {
 	console.log(`Connected to mysql as ${process.env.DB_USER}`);
 });
 
+function splitTags(tags) {
+	return tags ? tags.split("S") : [];
+}
+
 function tagsToArray(rows) {
 	rows.forEach(guild => 
-		guild.tags = guild.tags ? guild.tags.split("S") : []
+		guild.tags = splitTags(guild.tags)
 	);
 	return rows;
 }
@@ -42,15 +46,20 @@ const methods = {
 	insertGuild: unfetchedGuild => 
 		new Promise((resolve, reject) =>
 			unfetchedGuild.fetch()
-				.then(guild => 
+				.then(guild => {
+					let url = guild.iconURL();
+					if (!url) {
+						url = "http://54.67.103.216/no_icon.png"
+					}
 					connection.query(
-						"INSERT INTO guilds VALUES (?, ?, ?, ?, ?)", [guild.id, guild.name, guild.memberCount, guild.iconURL(), guild.ownerID],
+						"INSERT INTO guilds VALUES (?, ?, ?, ?, ?)", 
+						[guild.id, guild.name, guild.memberCount, url, guild.ownerID],
 						(err, rows) => {
 							if (err) reject(err);
 							else resolve();
 						}
-					)
-				)
+					);
+				})
 				.catch(err => reject(err))
 		),
 
@@ -133,7 +142,8 @@ const methods = {
 				`SELECT taggedGuilds.* FROM taggedGuilds 
 					INNER JOIN tags ON taggedGuilds.id=tags.guildID 
 					WHERE tags.tag IN (${tags.map(t => "?").join(",")}) 
-					ORDER BY members DESC, id LIMIT ?`,
+					GROUP BY taggedGuilds.id
+					ORDER BY taggedGuilds.members DESC, taggedGuilds.id LIMIT ?`,
 				[...tags, count],
 				(err, rows) => {
 					if (err) reject(err);
@@ -154,7 +164,8 @@ const methods = {
 						tags.tag IN (${tags.map(t => "?").join(",")}) 
 						AND
 						((members=? AND id>?) OR members<?)
-					ORDER BY members DESC, id LIMIT ?`,
+					GROUP BY taggedGuilds.id
+					ORDER BY taggedGuilds.members DESC, taggedGuilds.id LIMIT ?`,
 				[...tags, membersLast, idLast, membersLast, count],
 				(err, rows) => {
 					if (err) reject(err);
@@ -204,23 +215,25 @@ const methods = {
 
 	getTagsStartingWith: (substring, limit, badTags) =>
 		new Promise((resolve, reject) => {
-			let badTagsArr = tagsToArray(badTags);
+			let badTagsArr = splitTags(badTags);
+			let tagCondition = badTagsArr.length > 0 ? `AND NOT(correct_tag IN (${badTagsArr.map(t => "?").join(",")}))` : ``;
 			connection.query(
-				`SELECT ac.correct_tag as tag, COUNT(*) as count FROM autoCorrectTags AS ac
-					LEFT JOIN tags AS t ON ac.correct_tag=t.tag
-					WHERE 
-						ac.real_tag LIKE ?
-						AND
-						ac.correct_tag IN (${badTagsArr.map(t => "?").join(",")})
-					ORDER BY count GROUP BY ac.correct_tag
-					LIMIT ?
-				`, [substring + "%", ...badTagsArr, limit],
+				`SELECT ac.tag, COUNT(tags.tag) as count FROM (
+					SELECT DISTINCT correct_tag AS tag FROM autoCorrectTags 
+						WHERE 
+							real_tag LIKE ?
+							${tagCondition}
+				) AS ac 
+					LEFT JOIN tags ON tags.tag=ac.tag 
+					GROUP BY ac.tag ORDER BY count DESC
+					LIMIT ?`,
+				[substring + "%", ...badTagsArr, limit],
 				(err, rows) => {
 					if (err) reject(err);
 					else resolve(rows);
 				}
 			)
-		}),
+		}),		
 
 	checkIdToken: idToken => 
 		new Promise((resolve, reject) =>

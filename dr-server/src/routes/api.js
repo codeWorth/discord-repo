@@ -87,7 +87,7 @@ router.get("/tags", asyncHandler(
 		let tags = await db.getTagsStartingWith(tagSearch, tagsMaxCount, badTags);
 		res.json(tags);
 	},
-	(error, req, res) => res.status(500).json( {"error": JSON.stringify(error)} )
+	(error, req, res) => console.log(error)
 ));
 
 module.exports = router;
